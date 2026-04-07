@@ -95,7 +95,7 @@ The API supports the following metadata record types:
 | Status           | `200 OK`                                                                                                    |
 | Content-Type     | `application/json`                                                                                          |
 | Content-Language | `nl`                                                                                                        |
-| Link             | `<https://example.org/v1/contexts>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"` |
+| Link             | `<https://example.org/v1/context>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"` |
 
 ##### Example body
 
@@ -168,7 +168,7 @@ The API supports the following metadata record types:
 | Status           | `200 OK`                                                                                                    |
 | Content-Type     | `application/json`                                                                                          |
 | Content-Language | `nl`                                                                                                        |
-| Link             | `<https://example.org/v1/contexts>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"` |
+| Link             | `<https://example.org/v1/context>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"` |
 
 ##### Example body
 
@@ -255,7 +255,7 @@ The API supports the following metadata record types:
 | Status           | `200 OK`                                                                                                    |
 | Content-Type     | `application/json`                                                                                          |
 | Content-Language | `nl`                                                                                                        |
-| Link             | `<https://example.org/v1/contexts>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"` |
+| Link             | `<https://example.org/v1/context>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"` |
 
 ##### Example body
 
@@ -302,7 +302,7 @@ The API supports the following metadata record types:
 | Status           | `200 OK`                                                                                                    |
 | Content-Type     | `application/json`                                                                                          |
 | Content-Language | `nl`                                                                                                        |
-| Link             | `<https://example.org/v1/contexts>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"` |
+| Link             | `<https://example.org/v1/context>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"` |
 
 ##### Example body
 
@@ -336,7 +336,7 @@ The API supports the following metadata record types:
 | Status           | `200 OK`                                                                                                    |
 | Content-Type     | `application/json`                                                                                          |
 | Content-Language | `nl`                                                                                                        |
-| Link             | `<https://example.org/v1/contexts>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"` |
+| Link             | `<https://example.org/v1/context>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"` |
 
 ##### Example body
 
@@ -371,7 +371,7 @@ The API supports the following metadata record types:
 | Status           | `200 OK`                                                                                                    |
 | Content-Type     | `application/json`                                                                                          |
 | Content-Language | `nl`                                                                                                        |
-| Link             | `<https://example.org/v1/contexts>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"` |
+| Link             | `<https://example.org/v1/context>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"` |
 
 ##### Example body
 
@@ -387,7 +387,7 @@ The API supports the following metadata record types:
 
 #### Request
 
-`GET https://example.org/v1/contexts`
+`GET https://example.org/v1/context`
 
 ##### Headers
 
