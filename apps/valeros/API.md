@@ -15,11 +15,10 @@
   - [List the metadata records of heritage objects in a paged collection](#list-the-metadata-records-of-heritage-objects-in-a-paged-collection)
   - [Get the metadata record of a heritage object](#get-the-metadata-record-of-a-heritage-object)
   - [Get the metadata record of a place](#get-the-metadata-record-of-a-place)
-  - [Get the metadata record of a term](#get-the-metadata-record-of-a-term)
   - [Get the metadata record of a person](#get-the-metadata-record-of-a-person)
   - [Get the metadata record of an image](#get-the-metadata-record-of-an-image)
+  - [Get the metadata record of a term](#get-the-metadata-record-of-a-term)
   - [Get the JSON-LD context](#get-the-json-ld-context)
-- [To discuss](#to-discuss)
 
 ## About the API
 
@@ -69,6 +68,7 @@ The API supports the following metadata record types:
 1. Persons
 1. Images
 1. Terms
+1. Data provider
 
 ## Endpoints
 
@@ -135,13 +135,13 @@ The API supports the following metadata record types:
 
 > [!IMPORTANT]
 > TBD:
->
-> - Add facets/aggregations to the response
-> - Add sort options
-> - Decide upon the properties per metadata record that must be returned in the response
-> - Add filters to the request (and turn it into a full `/search` endpoint, with a `POST`)?
-> - Can this endpoint be used for autocompletion? Or is an explicit `/autocomplete` necessary (e.g. different parameters, different response)?
-> - Is there a query syntax standard that we can use (e.g. wildcards)?
+> 1. Add facets/aggregations to the response
+> 1. Add sort options
+> 1. Decide upon the properties per metadata record that must be returned in the response
+> 1. Add filters to the request (and turn it into a full `/search` endpoint, with a `POST`)?
+> 1. Can this endpoint be used for autocompletion? Or is an explicit `/autocomplete` necessary (e.g. different parameters, different response)?
+> 1. Is there a query syntax standard that we can use (e.g. wildcards)?
+> 1. Is there a need to search in all metadata records in a given search action, e.g. in both heritage objects and persons? Or would a search per record type suffice?
 
 ### Get the metadata record of a heritage object
 
@@ -222,6 +222,13 @@ The API supports the following metadata record types:
   "isBasedOn": "https://n2t.net/ark:/40020/collect100"
 }
 ```
+
+> [!IMPORTANT]
+> TBD:
+> 1. Add data about the original data provider, e.g. its name
+> 1. How to refer to the original metadata records, as provided by data providers? For example: `isBasedOn`?
+> 1. A metadata record can have multiple primary types, e.g. `CreativeWork` _and_ `Painting`. How to handle this?
+> 1. How to search for and retrieve languages of properties, e.g. "nl" or "en"? For example: send an `Accept-Language` header?
 
 ### Get the metadata record of a place
 
@@ -407,10 +414,3 @@ The API supports the following metadata record types:
   }
 }
 ```
-
-## To discuss
-
-1. How to search for and retrieve languages of properties, e.g. "nl" or "en"? For example: send an `Accept-Language` header?
-1. How to refer to the original metadata records, as provided by data providers? For example: `isBasedOn`?
-1. A metadata record can have multiple primary types, e.g. `CreativeWork` _and_ `Painting`. How to handle this?
-1. Is there a need to search in all metadata records in a given search action, e.g. in both heritage objects and persons? Or would a search per record type suffice?
