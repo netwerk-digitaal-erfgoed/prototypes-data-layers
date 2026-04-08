@@ -30,7 +30,12 @@
 1. The API primarily uses [SCHEMA-AP-NDE](https://docs.nde.nl/schema-profile/) as its data model, and parts of [Activity Streams](https://www.w3.org/TR/activitystreams-core/)
 
 > [!NOTE]
-> TODO: state the design goals of the API
+>
+> To do:
+>
+> 1. State the design goals of the API
+> 1. Think about CORS and e.g. the `Access-Control-Allow-Origin` header
+> 1. Create [JSON Schemas](https://json-schema.org/)?
 
 ## Alignment with other API specifications
 
@@ -69,6 +74,7 @@ The API uses common HTTP status codes: `2xx` for success, `4xx` for errors cause
 
 The API supports the following resource types:
 
+1. Collections
 1. Heritage objects
 1. Places
 1. Organizations
@@ -152,14 +158,15 @@ The API supports the following resource types:
           "thumbnailUrl": "https://collections.uu.nl/IIIF/33832/full/!512,512/0/default.jpg"
         }
       ],
-      "sdLicense": {
-        "id": "https://example.org/v1/licenses/{id}",
-        "name": "Creative Commons: publieke domein"
-      },
-      "sdPublisher": {
+      "publisher": {
         "id": "https://example.org/v1/organizations/{id}",
         "type": "Organization",
         "name": "Example Museum"
+      },
+      "license": {
+        "id": "https://example.org/v1/licenses/{id}",
+        "type": "CreativeWork",
+        "name": "Creative Commons: publieke domein"
       }
     },
     {
@@ -172,15 +179,19 @@ The API supports the following resource types:
 > [!NOTE]
 > To discuss:
 >
-> 1. The endpoint only returns information per item that is required according to [SCHEMA-AP-NDE](https://docs.nde.nl/schema-profile/) and [Requirements for Datasets](https://docs.nde.nl/requirements-datasets/)
+> 1. Does it make sense that the endpoint only returns item properties that are required according to [SCHEMA-AP-NDE](https://docs.nde.nl/schema-profile/) and [Requirements for Datasets](https://docs.nde.nl/requirements-datasets/)?
 > 1. Is there a query syntax standard that we can use (e.g. wildcards)?
 > 1. Can this endpoint be used for autocompletion? Or is an explicit `/autocomplete` necessary (e.g. different parameters, different response)?
 > 1. Add a dedicated `/search` endpoint, with a `POST`?
->
+> 1. Which filters need to be supported? For example: only filters that belong to required properties (e.g. creator, publisher, license)? Or filters for all properties (e.g. date created, genre, material)?
+> 1. Add support for an 'extended response' parameter, triggering the API to return all item properties, not just the basic/required ones? Or add support for a `properties` parameter, in which an API user can define the properties that must be returned (`https://example.org/v1/heritage-objects/page/2?properties=(id,name,creator/name)`)?
+
+> [!NOTE]
 > To do:
 >
 > 1. Add filters to the request
 > 1. Add sort options to the request
+> 1. Add an option for hit highlighting to the request
 > 1. Add facets/aggregations to the response
 
 ### Get a single heritage object
@@ -273,16 +284,17 @@ The API supports the following resource types:
   "temporalCoverage": "1896",
   "size": "74 × 92 cm",
   "text": "Zwart-wit foto van een kamer in het fysisch laboratorium te Utrecht",
-  "sdLicense": {
-    "id": "https://example.org/v1/licenses/{id}",
-    "name": "Creative Commons: publieke domein"
-  },
-  "sdDatePublished": "2026-04-08T13:35:03Z",
-  "sdPublisher": {
+  "publisher": {
     "id": "https://example.org/v1/organizations/{id}",
     "type": "Organization",
     "name": "Example Museum"
   },
+  "license": {
+    "id": "https://example.org/v1/licenses/{id}",
+    "type": "CreativeWork",
+    "name": "Creative Commons: publieke domein"
+  },
+  "sdDatePublished": "2026-04-08T13:35:03Z",
   "isBasedOn": {
     "id": "https://n2t.net/ark:/40020/collect100",
     "type": "CreativeWork"
@@ -293,7 +305,7 @@ The API supports the following resource types:
 > [!NOTE]
 > To discuss:
 >
-> 1. The endpoint does not refer to the original dataset of which the information about the resource is a part: a 'dataset' is not a relevant concept for data consumers?
+> 1. The endpoint does not refer to the original dataset of which the information about the resource is a part: a 'dataset' is not a relevant concept for API users?
 
 ### Get a single place
 
@@ -500,6 +512,7 @@ The API supports the following resource types:
   "type": ["MediaObject", "ImageObject"],
   "license": {
     "id": "https://example.org/v1/licenses/{id}",
+    "type": "CreativeWork",
     "name": "Creative Commons: publieke domein"
   },
   "copyrightNotice": "© 2025 Example Museum, with permission from Ph. Otographer",
