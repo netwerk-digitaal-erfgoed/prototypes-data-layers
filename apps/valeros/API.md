@@ -10,14 +10,14 @@
 - [Authentication](#authentication)
 - [Versioning](#versioning)
 - [Errors](#errors)
-- [Metadata record types](#metadata-record-types)
+- [Resource types](#resource-types)
 - [Endpoints](#endpoints)
-  - [List the metadata records of heritage objects in a paged collection](#list-the-metadata-records-of-heritage-objects-in-a-paged-collection)
-  - [Get the metadata record of a heritage object](#get-the-metadata-record-of-a-heritage-object)
-  - [Get the metadata record of a place](#get-the-metadata-record-of-a-place)
-  - [Get the metadata record of a person](#get-the-metadata-record-of-a-person)
-  - [Get the metadata record of an image](#get-the-metadata-record-of-an-image)
-  - [Get the metadata record of a term](#get-the-metadata-record-of-a-term)
+  - [List heritage objects in a paged collection](#list-heritage-objects-in-a-paged-collection)
+  - [Get a single heritage object](#get-a-single-heritage-object)
+  - [Get a single place](#get-a-single-place)
+  - [Get a single person](#get-a-single-person)
+  - [Get a single image](#get-a-single-image)
+  - [Get a single term](#get-a-single-term)
   - [Get the JSON-LD context](#get-the-json-ld-context)
 
 ## About the API
@@ -62,9 +62,9 @@ The API uses common HTTP status codes: `2xx` for success, `4xx` for errors cause
 | `500`  | A server error has occurred       |
 | `503`  | The server is under maintenance   |
 
-## Metadata record types
+## Resource types
 
-The API supports the following metadata record types:
+The API supports the following resource types:
 
 1. Heritage objects
 1. Places
@@ -75,7 +75,7 @@ The API supports the following metadata record types:
 
 ## Endpoints
 
-### List the metadata records of heritage objects in a paged collection
+### List heritage objects in a paged collection
 
 `GET /v1/heritage-objects/page/{page}?size={size}&q={q}`
 
@@ -139,14 +139,15 @@ The API supports the following metadata record types:
 > [!NOTE]
 > TBD:
 > 1. Is there a query syntax standard that we can use (e.g. wildcards)?
-> 1. Add filters to the request (and turn it into a full `/search` endpoint, with a `POST`)?
-> 1. Add sort options to the request
-> 1. User a cursor for pagination, instead of `page` and `startIndex`?
-> 1. Add facets/aggregations to the response
-> 1. Decide upon the properties per metadata record that must be returned in the response
+> 1. Decide upon the properties per resource type that must be returned in the response
 > 1. Can this endpoint be used for autocompletion? Or is an explicit `/autocomplete` necessary (e.g. different parameters, different response)?
+>
+> TODO:
+> 1. Add filters to the request (and turn it into a full `/search` endpoint, with a `POST`)
+> 1. Add sort options to the request
+> 1. Add facets/aggregations to the response
 
-### Get the metadata record of a heritage object
+### Get a single heritage object
 
 #### Request
 
@@ -175,7 +176,7 @@ The API supports the following metadata record types:
 ```json
 {
   "id": "https://example.org/v1/heritage-objects/{id}",
-  "type": "CreativeWork",
+  "type": ["CreativeWork", "Painting"],
   "additionalType": [
     {
       "id": "https://example.org/v1/terms/{id}",
@@ -228,12 +229,13 @@ The API supports the following metadata record types:
 
 > [!NOTE]
 > TBD:
+> 1. How to refer to the original resource, as provided by data providers? For example: `isBasedOn`?
+>
+> TODO:
 > 1. Add data about the original data provider, e.g. its name
-> 1. How to refer to the original metadata records, as provided by data providers? For example: `isBasedOn`?
-> 1. A metadata record can have multiple primary types, e.g. `CreativeWork` _and_ `Painting`. How to handle this?
-> 1. How to search for and retrieve languages of properties, e.g. "nl" or "en"? For example: send an `Accept-Language` header?
+> 1. Add data about the rights/license
 
-### Get the metadata record of a place
+### Get a single place
 
 #### Request
 
@@ -280,7 +282,7 @@ The API supports the following metadata record types:
 }
 ```
 
-### Get the metadata record of a person
+### Get a single person
 
 #### Request
 
@@ -314,7 +316,7 @@ The API supports the following metadata record types:
 }
 ```
 
-### Get the metadata record of an image
+### Get a single image
 
 #### Request
 
@@ -349,7 +351,7 @@ The API supports the following metadata record types:
 }
 ```
 
-### Get the metadata record of a term
+### Get a single term
 
 #### Request
 
