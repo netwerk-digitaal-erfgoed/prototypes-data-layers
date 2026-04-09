@@ -22,6 +22,7 @@
   - [Get a single media object](#get-a-single-media-object)
   - [Get a single license](#get-a-single-license)
   - [Get a single term](#get-a-single-term)
+  - [Get a single dataset](#get-a-single-dataset)
   - [Get the JSON-LD context](#get-the-json-ld-context)
 
 ## About the API
@@ -87,6 +88,7 @@ The API supports the following resource types:
 1. Media objects
 1. Licenses
 1. Terms
+1. Datasets
 
 ## Endpoints
 
@@ -154,29 +156,8 @@ All endpoints accept and return the same HTTP headers:
           "type": "Person",
           "name": "John Doe"
         }
-      ],
-      "associatedMedia": [
-        {
-          "id": "https://example.org/v1/media-objects/{id}",
-          "type": ["MediaObject", "ImageObject"],
-          "license": {
-            "id": "https://example.org/v1/licenses/{id}",
-            "name": "Creative Commons: publieke domein"
-          },
-          "contentUrl": "https://collections.uu.nl/IIIF/33832/full/max/0/default.jpg",
-          "thumbnailUrl": "https://collections.uu.nl/IIIF/33832/full/!512,512/0/default.jpg"
-        }
-      ],
-      "publisher": {
-        "id": "https://example.org/v1/organizations/{id}",
-        "type": "Organization",
-        "name": "Example Museum"
-      },
-      "license": {
-        "id": "https://example.org/v1/licenses/{id}",
-        "type": "CreativeWork",
-        "name": "Creative Commons: publieke domein"
-      }
+      ]
+      // ... other properties (see the response from endpoint "Get a single heritage object")
     },
     {
       // ... other items
@@ -185,15 +166,12 @@ All endpoints accept and return the same HTTP headers:
 }
 ```
 
-> [!NOTE]
-> To discuss:
->
-> 1. Does it make sense that the endpoint only returns item properties that are required according to [SCHEMA-AP-NDE](https://docs.nde.nl/schema-profile/) and [Requirements for Datasets](https://docs.nde.nl/requirements-datasets/)?
-> 1. Is there a query syntax standard that we can use (e.g. wildcards)?
-> 1. Can this endpoint be used for autocompletion? Or is an explicit `/autocomplete` necessary (e.g. different parameters, different response)?
-> 1. Add a dedicated `/search` endpoint, with a `POST`?
-> 1. Which filters need to be supported? For example: only filters that belong to required properties (e.g. creator, publisher, license)? Or filters for all properties (e.g. date created, genre, material)?
-> 1. Add support for an 'extended response' parameter, triggering the API to return all item properties, not just the basic/required ones? Or add support for a `properties` parameter, in which an API user can define the properties that must be returned (`https://example.org/v1/heritage-objects/page/2?properties=(id,name,creator/name)`)?
+Design decisions:
+
+1. The endpoint returns all properties of all items, both required and optional properties, according to [SCHEMA-AP-NDE](https://docs.nde.nl/schema-profile/). Revisit this decision if there are functional and/or technical reasons (e.g. over-fetching, performance).
+1. The endpoint supports all properties for filtering, both required and optional properties.
+1. There is no query syntax standard for denoting the `q`, only de facto ones. For now the API supports parts of the [simple query string syntax](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-simple-query-string-query#simple-query-string-syntax) of Elasticsearch, notably the wildcard (`*`)
+1. The API does not have a dedicated `/search` and `/autocomplete` endpoint - the regular 'list' endpoint can be used. Revisit this decision if there are functional and/or technical reasons.
 
 > [!NOTE]
 > To do:
@@ -277,15 +255,20 @@ All endpoints accept and return the same HTTP headers:
   "temporalCoverage": "1896",
   "size": "74 × 92 cm",
   "text": "Zwart-wit foto van een kamer in het fysisch laboratorium te Utrecht",
-  "publisher": {
-    "id": "https://example.org/v1/organizations/{id}",
-    "type": "Organization",
-    "name": "Example Museum"
-  },
-  "license": {
-    "id": "https://example.org/v1/licenses/{id}",
-    "type": "CreativeWork",
-    "name": "Creative Commons: publieke domein"
+  "isPartOf": {
+    "id": "https://example.org/v1/datasets/{id}",
+    "type": "Dataset",
+    "name": "Example Dataset",
+    "publisher": {
+      "id": "https://example.org/v1/organizations/{id}",
+      "type": "Organization",
+      "name": "Example Museum"
+    },
+    "license": {
+      "id": "https://example.org/v1/licenses/{id}",
+      "type": "CreativeWork",
+      "name": "Creative Commons: publieke domein"
+    }
   },
   "sdDatePublished": "2026-04-08T13:35:03Z",
   "isBasedOn": {
@@ -294,11 +277,6 @@ All endpoints accept and return the same HTTP headers:
   }
 }
 ```
-
-> [!NOTE]
-> To discuss:
->
-> 1. The endpoint does not refer to the original dataset of which the information about the resource is a part: a 'dataset' is not a relevant concept for API users?
 
 ### Get a single place
 
@@ -475,6 +453,34 @@ All endpoints accept and return the same HTTP headers:
   "id": "https://example.org/v1/terms/{id}",
   "type": "DefinedTerm",
   "name": "fotoafdruk zwart-wit"
+}
+```
+
+### Get a single dataset
+
+#### Request
+
+`GET /v1/datasets/{id}`
+
+#### Response
+
+##### Example body
+
+```json
+{
+  "id": "https://example.org/v1/datasets/{id}",
+  "type": "Dataset",
+  "name": "Example Dataset",
+  "publisher": {
+    "id": "https://example.org/v1/organizations/{id}",
+    "type": "Organization",
+    "name": "Example Museum"
+  },
+  "license": {
+    "id": "https://example.org/v1/licenses/{id}",
+    "type": "CreativeWork",
+    "name": "Creative Commons: publieke domein"
+  }
 }
 ```
 
