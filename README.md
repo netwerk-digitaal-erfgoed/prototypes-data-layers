@@ -3,14 +3,12 @@
 > [!WARNING]
 > The prototypes are for illustration and discussion - they have no official standing.
 
-## Development
-
-### With Docker
-
-Run the development container:
-
-    docker compose run --env-from-file .env --service-ports --rm node
+## Development with Docker
 
 Install packages:
 
-    npm install --no-progress
+    docker compose run --env-from-file .env --rm node npm install --no-progress
+
+Run the Valeros services:
+
+    docker compose up valeros-typesense valeros-api
