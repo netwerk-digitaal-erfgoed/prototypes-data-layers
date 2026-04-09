@@ -1,3 +1,15 @@
+# Build outputs
+.output
+
+# Dependencies
+node_modules
+
+# Env files
+.env
+
 # Misc
 .DS_Store
 .zed
+
+# Turbo
+.turbo

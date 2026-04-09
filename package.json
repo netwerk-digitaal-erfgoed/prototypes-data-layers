@@ -1,0 +1,22 @@
+{
+  "name": "@repo/prototypes-data-layers",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "turbo run build",
+    "fix": "turbo run fix",
+    "format": "turbo run format",
+    "lint": "turbo run lint"
+  },
+  "devDependencies": {
+    "turbo": "2.9.5"
+  },
+  "engines": {
+    "node": ">=24.x"
+  },
+  "packageManager": "npm@11.11.0"
+}

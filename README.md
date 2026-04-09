@@ -1,5 +1,16 @@
 # Prototypes data layers
 
-## Contents
+> [!WARNING]
+> The prototypes are for illustration and discussion - they have no official standing.
 
-- [Valeros](apps/valeros/README.md)
+## Development
+
+### With Docker
+
+Run the development container:
+
+    docker compose run --env-from-file .env --service-ports --rm node
+
+Install packages:
+
+    npm install --no-progress
