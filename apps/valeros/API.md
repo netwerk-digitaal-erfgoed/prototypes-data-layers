@@ -157,7 +157,7 @@ All endpoints accept and return the same HTTP headers:
           "name": "John Doe"
         }
       ]
-      // ... other properties (see the response from endpoint "Get a single heritage object")
+      // ... other properties (see the response of endpoint "Get a single heritage object")
     },
     {
       // ... other items
