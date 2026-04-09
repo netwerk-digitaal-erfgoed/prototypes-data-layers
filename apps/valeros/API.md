@@ -41,7 +41,7 @@
 
 ## Alignment with other API specifications
 
-The API is not yet aligned with existing API specifications, such as:
+The API is not yet or not yet fully aligned with existing API specifications, such as:
 
 1. [NLGov REST API Design Rules](https://gitdocumentatie.logius.nl/publicatie/api/adr/2.1.0/)
 1. [API Design Rules Module: Geospatial](https://gitdocumentatie.logius.nl/publicatie/api/mod-geo/1.0.3/)
@@ -58,7 +58,9 @@ The API is open to everyone, without authentication.
 
 ## Versioning
 
-This is version `1.0.0` of the API.
+> [!NOTE]
+>
+> To do: explain how API versioning works.
 
 ## Errors
 
@@ -107,6 +109,7 @@ All endpoints accept and return the same HTTP headers:
 | Content-Type     | `application/json`                                                                                         |
 | Content-Language | E.g. `nl` or `en`                                                                                          |
 | Link             | `<https://example.org/v1/context>; rel="http://www.w3.org/ns/json-ld#context"; type="application/ld+json"` |
+| API-Version      | E.g. `1.0.0`                                                                                               |
 
 ### List heritage objects in a paged collection
 
