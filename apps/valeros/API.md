@@ -117,15 +117,17 @@ All endpoints accept and return the same HTTP headers:
 
 #### Request
 
-`GET /v1/heritage-objects/page/{page}?size={size}&q={q}`
+`GET /v1/heritage-objects/page/{page}?size={size}&q={q}&sort={sort}`
 
 ##### URI parameters
 
-| Property | Data type | Cardinality | Description              |
-| -------- | --------- | ----------- | ------------------------ |
-| `page`   | Number    | 1           | Page index               |
-| `size`   | Number    | 0 or 1      | Number of items per page |
-| `q`      | String    | 0 or 1      | Search query             |
+| Property | Data type | Cardinality | Description                                        |
+| -------- | --------- | ----------- | -------------------------------------------------- |
+| `page`   | Number    | 1           | Page index, e.g. `1`                               |
+| `size`   | Number    | 0 or 1      | Number of items per page, e.g. `10`                |
+| `q`      | String    | 0 or 1      | Search query, e.g. `lab*`                          |
+| `sort`   | String    | 0 or 1      | Sort property and order, e.g. `dateCreated:desc`   |
+| `filter` | String    | 0 or more   | Filter property and value, e.g. `creator:John Doe` |
 
 #### Response
 
@@ -133,17 +135,10 @@ All endpoints accept and return the same HTTP headers:
 
 ```json
 {
-  "id": "https://example.org/v1/heritage-objects/page/2?size=10&q=lab*",
+  "id": "https://example.org/v1/heritage-objects/page/2?size=10&q=lab*&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
   "type": "OrderedCollectionPage",
-  "partOf": {
-    "id": "https://example.org/v1/heritage-objects",
-    "type": "OrderedCollection",
-    "totalItems": 195,
-    "first": "https://example.org/v1/heritage-objects/page/1?size=10&q=lab*",
-    "last": "https://example.org/v1/heritage-objects/page/20?size=10&q=lab*"
-  },
-  "next": "https://example.org/v1/heritage-objects/page/3?size=10&q=lab*",
-  "prev": "https://example.org/v1/heritage-objects/page/1?size=10&q=lab*",
+  "next": "https://example.org/v1/heritage-objects/page/3?size=10&q=lab*&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
+  "prev": "https://example.org/v1/heritage-objects/page/1?size=10&q=lab*&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
   "startIndex": 20,
   "orderedItems": [
     {
@@ -162,24 +157,56 @@ All endpoints accept and return the same HTTP headers:
     {
       // ... other items
     }
-  ]
+  ],
+  "partOf": {
+    "id": "https://example.org/v1/heritage-objects?q=lab*&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
+    "type": "OrderedCollection",
+    "totalItems": 195,
+    "first": "https://example.org/v1/heritage-objects/page/1?size=10&q=lab*&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
+    "last": "https://example.org/v1/heritage-objects/page/20?size=10&q=lab*&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
+    "facets": [
+      {
+        "type": "Collection",
+        "name": "creator",
+        "items": [
+          {
+            "type": "FacetValue",
+            "value": "John Doe",
+            "count": 34
+          },
+          {
+            "type": "FacetValue",
+            "value": "Vincent van Gogh",
+            "count": 28
+          }
+          // ... other facet values
+        ]
+      }
+      // ... other facets
+    ]
+  }
 }
 ```
 
 Design decisions:
 
-1. The endpoint returns all (first layer) properties of an item, both required and optional properties, according to [SCHEMA-AP-NDE](https://docs.nde.nl/schema-profile/). Revisit this decision if there are functional and/or technical reasons (e.g. over-fetching, performance).
+1. The endpoint returns all (first layer?) properties of an item, both required and optional properties, according to [SCHEMA-AP-NDE](https://docs.nde.nl/schema-profile/). Revisit this decision if there are functional and/or technical reasons (e.g. over-fetching, performance).
 1. The endpoint supports all properties for filtering, both required and optional properties.
 1. There is no query syntax standard for denoting the `q`, only de facto ones. For now the API supports parts of the [simple query string syntax](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-simple-query-string-query#simple-query-string-syntax) of Elasticsearch, notably the wildcard (`*`)
-1. The API does not have a dedicated `/search` and `/autocomplete` endpoint - the regular 'list' endpoint can be used. Revisit this decision if there are functional and/or technical reasons.
+1. The API does not have a dedicated `/search` and `/autocomplete` endpoint - the regular 'list' endpoint can be used. Revisit this decision if there are functional and/or technical reasons (e.g. over-fetching, performance).
+
+> [!NOTE]
+> To discuss:
+>
+> 1. Which facets should be created (e.g. `creator`, `material`, all)?
+> 1. Which text properties should be indexed (e.g. `name`, `description`, all)?
+> 1. Support a search request option for denoting the facets that should be returned? Or always return all facets?
+> 1. Support a search request option for denoting the properties that must be searched? Or always search in all indexed properties?
 
 > [!NOTE]
 > To do:
 >
-> 1. Add filters to the request
-> 1. Add sort options to the request
 > 1. Add an option for hit highlighting to the request
-> 1. Add facets/aggregations to the response
 
 ### Get a single heritage object
 
