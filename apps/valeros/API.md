@@ -117,7 +117,7 @@ All endpoints accept and return the same HTTP headers:
 
 #### Request
 
-`GET /v1/heritage-objects/page/{page}?size={size}&q={q}&sort={sort}`
+`GET /v1/heritage-objects/page/{page}?size={size}&q={q}&sort={sort}&filter={filter}`
 
 ##### URI parameters
 
@@ -153,10 +153,8 @@ All endpoints accept and return the same HTTP headers:
         }
       ]
       // ... other properties (see the response of endpoint "Get a single heritage object")
-    },
-    {
-      // ... other items
     }
+    // ... other items
   ],
   "partOf": {
     "id": "https://example.org/v1/heritage-objects?q=lab*&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
@@ -179,7 +177,7 @@ All endpoints accept and return the same HTTP headers:
             "value": "Vincent van Gogh",
             "count": 28
           }
-          // ... other facet values
+          // ... other items
         ]
       }
       // ... other facets
@@ -206,7 +204,7 @@ Design decisions:
 > [!NOTE]
 > To do:
 >
-> 1. Add an option for hit highlighting to the request
+> 1. Add support for hit highlighting, to the request and the response
 
 ### Get a single heritage object
 
