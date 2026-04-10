@@ -1,4 +1,4 @@
-# Query for preparing the data for ingestion into the search engine
+# Quick and dirty query for preparing the data for ingestion into the search index.
 # See also: https://collections.uu.nl/datasetregister
 
 PREFIX ext: <https://example.org/>
@@ -47,11 +47,13 @@ CONSTRUCT {
     schema:thumbnailUrl ?thumbnailUrl ;
     schema:isBasedOn ?isBasedOn .
 
-  ?isBasedOn schema:encodingFormat "application/ld+json;profile='http://iiif.io/api/image/3/context.json'" .
+  ?isBasedOn a schema:MediaObject ;
+    # Missing in the source data
+    schema:encodingFormat "application/ld+json;profile='http://iiif.io/api/image/3/context.json'" .
 }
 WHERE {
   #Example:
-  BIND(<https://n2t.net/ark:/40020/collect163299> AS ?cho)
+  #BIND(<https://n2t.net/ark:/40020/collect163299> AS ?cho)
 
   ?cho a schema:CreativeWork ;
     schema:name ?name ;
@@ -59,50 +61,47 @@ WHERE {
 
   ?dataset a ?datasetType .
 
+  ?cho schema:creator ?creator .
+  ?creator schema:name ?creatorName .
+  BIND(IRI(CONCAT("https://example.org/persons/", MD5(STR(?creatorName)))) AS ?creatorId)
+
   OPTIONAL { ?cho schema:description ?description }
   OPTIONAL { ?cho schema:dateCreated ?dateCreated }
 
   OPTIONAL {
-    ?cho schema:creator ?creator .
-    ?creator schema:name ?creatorName
-    BIND(IRI(CONCAT("https://example.org/persons/", MD5(STR(?creatorName)))) AS ?creatorId)
-  }
-
-  OPTIONAL {
     ?cho schema:genre ?genre .
-    ?genre schema:name ?genreName
+    ?genre schema:name ?genreName .
     BIND(IRI(CONCAT("https://example.org/terms/", MD5(STR(?genreName)))) AS ?genreId)
   }
 
   OPTIONAL {
     ?cho schema:material ?material .
-    ?material schema:name ?materialName
+    ?material schema:name ?materialName .
     BIND(IRI(CONCAT("https://example.org/terms/", MD5(STR(?materialName)))) AS ?materialId)
   }
 
   OPTIONAL {
     ?cho schema:additionalType ?additionalType .
-    ?additionalType schema:name ?additionalTypeName
+    ?additionalType schema:name ?additionalTypeName .
     BIND(IRI(CONCAT("https://example.org/terms/", MD5(STR(?additionalTypeName)))) AS ?additionalTypeId)
   }
 
   OPTIONAL {
     ?cho schema:contentLocation ?contentLocation .
-    ?contentLocation schema:name ?contentLocationName
+    ?contentLocation schema:name ?contentLocationName .
     BIND(IRI(CONCAT("https://example.org/places/", MD5(STR(?contentLocationName)))) AS ?contentLocationId)
   }
 
+  ?cho schema:associatedMedia ?associatedMedia .
+  ?associatedMedia a ?associatedMediaType ;
+    schema:contentUrl ?contentUrl ;
+    schema:thumbnailUrl ?thumbnailUrl .
+  BIND(IRI(CONCAT("https://example.org/media-objects/", MD5(STR(?contentUrl)))) AS ?associatedMediaId)
+
+  # IIIF support is optional
   OPTIONAL {
-    ?cho schema:associatedMedia ?associatedMedia .
-    ?associatedMedia a ?associatedMediaType ;
-      schema:contentUrl ?contentUrl ;
-      schema:thumbnailUrl ?thumbnailUrl .
-
-    # IIIF support is optional
-    OPTIONAL {
-      ?associatedMedia schema:isBasedOn ?isBasedOn .
-    }
-
-    BIND(IRI(CONCAT("https://example.org/media-objects/", MD5(STR(?contentUrl)))) AS ?associatedMediaId)
+    ?associatedMedia schema:isBasedOn ?isBasedOnRaw .
+    # Remove the trailing "/info.json"
+    BIND(IRI(STRBEFORE(STR(?isBasedOnRaw), "/info.json")) AS ?isBasedOn)
   }
 }
