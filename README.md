@@ -9,6 +9,10 @@ Install packages:
 
     docker compose run --env-from-file .env --rm node npm install --no-progress
 
+Run the Node service:
+
+    docker compose run --env-from-file .env --rm node
+
 Run the Valeros services:
 
     docker compose up valeros-typesense valeros-api
