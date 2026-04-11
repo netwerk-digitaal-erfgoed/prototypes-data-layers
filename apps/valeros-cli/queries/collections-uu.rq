@@ -5,51 +5,56 @@ PREFIX ext: <https://example.org/>
 PREFIX schema: <https://schema.org/>
 
 CONSTRUCT {
-  ?cho a schema:CreativeWork ;
-    schema:name ?name ;
-    schema:isPartOf ?dataset ;
-    schema:description ?description ;
-    schema:dateCreated ?dateCreated ;
-    schema:creator ?creatorId, ?creatorName ;
-    schema:genre ?genreId, ?genreName ;
-    schema:material ?materialId, ?materialName ;
-    schema:additionalType ?additionalTypeId, ?additionalTypeName ;
-    schema:contentLocation ?contentLocationId, ?contentLocationName ;
-    schema:associatedMedia ?associatedMediaId .
+  ?cho a ext:CreativeWork ;
+    ext:name ?name ;
+    ext:isPartOf ?dataset ;
+    ext:description ?description ;
+    ext:dateCreated ?dateCreated ;
+    ext:creator ?creatorId ;
+    ext:creatorNames ?creatorName ;
+    ext:genre ?genreId ;
+    ext:genreNames ?genreName ;
+    ext:material ?materialId ;
+    ext:materialNames ?materialName ;
+    ext:additionalType ?additionalTypeId ;
+    ext:additionalTypeNames ?additionalTypeName ;
+    ext:contentLocation ?contentLocationId ;
+    ext:contentLocationNames ?contentLocationName ;
+    ext:associatedMedia ?associatedMediaId .
 
   ?dataset a ?datasetType ;
-    schema:license <http://standaarden.overheid.nl/owms/terms/geslotenlicentie> ;
-    schema:publisher <https://www.umu.nl/> .
+    ext:license <http://standaarden.overheid.nl/owms/terms/geslotenlicentie> ;
+    ext:publisher <https://www.umu.nl/> .
 
   <http://standaarden.overheid.nl/owms/terms/geslotenlicentie> a ext:License ;
-    schema:name "Gesloten licentie"@nl .
+    ext:name "Gesloten licentie"@nl .
 
-  <https://www.umu.nl/> a schema:Organization ;
-    schema:name "Universiteitsmuseum Utrecht"@nl .
+  <https://www.umu.nl/> a ext:Organization ;
+    ext:name "Universiteitsmuseum Utrecht"@nl .
 
   ?creatorId a ext:Creator ;
-    schema:name ?creatorName .
+    ext:name ?creatorName .
 
   ?genreId a ext:Genre ;
-    schema:name ?genreName .
+    ext:name ?genreName .
 
   ?materialId a ext:Material ;
-    schema:name ?materialName .
+    ext:name ?materialName .
 
   ?additionalTypeId a ext:AdditionalType ;
-    schema:name ?additionalTypeName .
+    ext:name ?additionalTypeName .
 
   ?contentLocationId a ext:ContentLocation ;
-    schema:name ?contentLocationName .
+    ext:name ?contentLocationName .
 
   ?associatedMediaId a ?associatedMediaType ;
-    schema:contentUrl ?contentUrl ;
-    schema:thumbnailUrl ?thumbnailUrl ;
-    schema:isBasedOn ?isBasedOn .
+    ext:contentUrl ?contentUrl ;
+    ext:thumbnailUrl ?thumbnailUrl ;
+    ext:isBasedOn ?isBasedOn .
 
-  ?isBasedOn a schema:MediaObject ;
+  ?isBasedOn a ext:MediaObject ;
     # Missing in the source data
-    schema:encodingFormat "application/ld+json;profile='http://iiif.io/api/image/3/context.json'" .
+    ext:encodingFormat "application/ld+json;profile='http://iiif.io/api/image/3/context.json'" .
 }
 WHERE {
   #Examples:
