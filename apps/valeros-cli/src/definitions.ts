@@ -23,15 +23,21 @@ export const heritageObjectJsonLdSchema = z
     "ext:dateCreated": valueSchema.optional(),
     "ext:description": valueSchema.optional(),
     "ext:additionalType": idSchema.optional(),
-    "ext:additionalTypeNames": valueSchema.optional(),
+    "ext:additionalTypeName": valueSchema.optional(),
     "ext:contentLocation": idSchema.optional(),
-    "ext:contentLocationNames": valueSchema.optional(),
+    "ext:contentLocationName": valueSchema.optional(),
     "ext:creator": idSchema,
-    "ext:creatorNames": valueSchema,
+    "ext:creatorName": valueSchema,
+    "ext:isPartOf": idSchema,
+    "ext:datasetName": valueSchema,
     "ext:genre": idSchema.optional(),
-    "ext:genreNames": valueSchema.optional(),
+    "ext:genreName": valueSchema.optional(),
+    "ext:license": idSchema,
+    "ext:licenseName": valueSchema,
     "ext:material": idSchema.optional(),
-    "ext:materialNames": valueSchema.optional(),
+    "ext:materialName": valueSchema.optional(),
+    "ext:publisher": idSchema,
+    "ext:publisherName": valueSchema,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
@@ -39,16 +45,22 @@ export const heritageObjectJsonLdSchema = z
     name: data["ext:name"]?.join("; "), // Merge into one string
     dateCreated: data["ext:dateCreated"]?.join("; "), // Merge into one string
     description: data["ext:description"]?.join("; "), // Merge into one string
-    additional_types: data["ext:additionalTypeNames"],
+    additional_types: data["ext:additionalTypeName"],
     additional_type_id: data["ext:additionalType"]?.map((id) => createIdFrom(id)),
-    genre_id: data["ext:genre"]?.map((id) => createIdFrom(id)),
-    content_locations: data["ext:contentLocationNames"],
-    creators: data["ext:creatorNames"],
-    creator_id: data["ext:creator"]?.map((id) => createIdFrom(id)),
-    genres: data["ext:genreNames"],
+    content_locations: data["ext:contentLocationName"],
     content_location_id: data["ext:contentLocation"]?.map((id) => createIdFrom(id)),
-    materials: data["ext:materialNames"],
+    creators: data["ext:creatorName"],
+    creator_id: data["ext:creator"]?.map((id) => createIdFrom(id)),
+    datasets: data["ext:datasetName"],
+    dataset_id: data["ext:isPartOf"]?.map((id) => createIdFrom(id)),
+    genres: data["ext:genreName"],
+    genre_id: data["ext:genre"]?.map((id) => createIdFrom(id)),
+    licenses: data["ext:licenseName"],
+    license_id: data["ext:license"]?.map((id) => createIdFrom(id)),
+    materials: data["ext:materialName"],
     material_id: data["ext:material"]?.map((id) => createIdFrom(id)),
+    publishers: data["ext:publisherName"],
+    publisher_id: data["ext:publisher"]?.map((id) => createIdFrom(id)),
     isBasedOn: {
       id: data["@id"],
       type: "CreativeWork",
@@ -112,6 +124,18 @@ export const genreJsonLdSchema = z
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
     type: "DefinedTerm",
+    name: data["ext:name"]?.join("; "), // Merge into one string
+  }));
+
+export const licensesJsonLdSchema = z
+  .object({
+    "@id": z.string(),
+    "@type": z.enum(["ext:License"]),
+    "ext:name": valueSchema,
+  })
+  .transform((data) => ({
+    id: createIdFrom(data["@id"]),
+    type: "CreativeWork",
     name: data["ext:name"]?.join("; "), // Merge into one string
   }));
 

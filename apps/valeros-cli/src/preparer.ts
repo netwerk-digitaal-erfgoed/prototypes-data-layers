@@ -12,6 +12,7 @@ import {
   creatorJsonLdSchema,
   datasetJsonLdSchema,
   organizationsJsonLdSchema,
+  licensesJsonLdSchema,
 } from "./definitions.js";
 import { EOL } from "node:os";
 import path from "node:path";
@@ -95,6 +96,10 @@ export async function toJsonLinesFiles(input: ToJsonLinesFilesInput) {
     {
       name: "heritage-objects.jsonl",
       schema: heritageObjectJsonLdSchema,
+    },
+    {
+      name: "licenses.jsonl",
+      schema: licensesJsonLdSchema,
     },
     {
       name: "materials.jsonl",

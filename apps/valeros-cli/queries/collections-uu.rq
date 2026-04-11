@@ -8,30 +8,36 @@ CONSTRUCT {
   ?cho a ext:CreativeWork ;
     ext:name ?name ;
     ext:isPartOf ?dataset ;
+    ext:datasetName ?datasetName ;
+    ext:publisher ?publisher ;
+    ext:publisherName ?publisherName ;
+    ext:license ?license ;
+    ext:licenseName ?licenseName ;
     ext:description ?description ;
     ext:dateCreated ?dateCreated ;
     ext:creator ?creatorId ;
-    ext:creatorNames ?creatorName ;
+    ext:creatorName ?creatorName ;
     ext:genre ?genreId ;
-    ext:genreNames ?genreName ;
+    ext:genreName ?genreName ;
     ext:material ?materialId ;
-    ext:materialNames ?materialName ;
+    ext:materialName ?materialName ;
     ext:additionalType ?additionalTypeId ;
-    ext:additionalTypeNames ?additionalTypeName ;
+    ext:additionalTypeName ?additionalTypeName ;
     ext:contentLocation ?contentLocationId ;
-    ext:contentLocationNames ?contentLocationName ;
+    ext:contentLocationName ?contentLocationName ;
     ext:associatedMedia ?associatedMediaId .
 
   ?dataset a ext:Dataset ;
-    ext:name "Collectie Universiteitsmuseum Utrecht"@nl ;
-    ext:license <http://standaarden.overheid.nl/owms/terms/geslotenlicentie> ;
-    ext:publisher <https://www.umu.nl/> .
+    ext:name ?datasetName ;
+    ext:license ?license ;
+    ext:publisher ?publisher .
 
-  <http://standaarden.overheid.nl/owms/terms/geslotenlicentie> a ext:License ;
-    ext:name "Gesloten licentie"@nl .
+  ?license a ext:License ;
+    ext:name ?licenseName ;
+    ext:isBasedOn ?originalLicense .
 
-  <https://www.umu.nl/> a ext:Organization ;
-    ext:name "Universiteitsmuseum Utrecht"@nl .
+  ?publisher a ext:Organization ;
+    ext:name ?publisherName .
 
   ?creatorId a ext:Creator ;
     ext:name ?creatorName .
@@ -64,9 +70,16 @@ WHERE {
 
   ?cho a schema:CreativeWork ;
     schema:name ?name ;
-    schema:isPartOf ?dataset .
+    schema:isPartOf ?originalDataset .
 
-  ?dataset a schema:Dataset .
+  ?originalDataset a schema:Dataset .
+  BIND(IRI(CONCAT("https://example.org/datasets/", MD5(STR(?originalDataset)))) AS ?dataset)
+  BIND("Collectie Universiteitsmuseum Utrecht"@nl AS ?datasetName)
+  BIND(IRI(CONCAT("https://example.org/organizations/", MD5("https://www.umu.nl"))) AS ?publisher)
+  BIND("Universiteitsmuseum Utrecht"@nl AS ?publisherName)
+  BIND(IRI("http://standaarden.overheid.nl/owms/terms/geslotenlicentie") AS ?originalLicense)
+  BIND(IRI(CONCAT("https://example.org/licenses/", MD5(STR(?originalLicense)))) AS ?license)
+  BIND("Gesloten licentie"@nl AS ?licenseName)
 
   ?cho schema:creator ?creator .
   ?creator schema:name ?creatorName .
