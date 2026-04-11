@@ -1,5 +1,5 @@
 import { defineCommand } from "citty";
-import { toJsonLinesFiles } from "./preparer.js";
+import { toJsonLinesFiles } from "./json-lines.js";
 
 export const buildArgs = {
   inputFile: {

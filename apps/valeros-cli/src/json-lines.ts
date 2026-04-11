@@ -14,7 +14,7 @@ import {
   licensesJsonLdSchema,
   mediaObjectJsonLdSchema,
   publishersJsonLdSchema,
-} from "./definitions.js";
+} from "./schemas.js";
 import { EOL } from "node:os";
 import path from "node:path";
 
@@ -26,7 +26,7 @@ const toJsonLinesFileInputSchema = z.object({
 
 type ToJsonLinesFileInput = z.input<typeof toJsonLinesFileInputSchema>;
 
-export async function toJsonLinesFile(input: ToJsonLinesFileInput) {
+async function toJsonLinesFile(input: ToJsonLinesFileInput) {
   const opts = toJsonLinesFileInputSchema.parse(input);
 
   const writeStream = createWriteStream(opts.outputFile);
