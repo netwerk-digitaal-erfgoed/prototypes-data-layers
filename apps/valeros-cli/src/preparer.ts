@@ -3,7 +3,7 @@ import { chain } from "stream-chain";
 import { pick } from "stream-json/filters/pick.js";
 import { streamArray } from "stream-json/streamers/stream-array.js";
 import { z } from "zod";
-import { heritageObjectJsonLdSchema } from "./definitions.js";
+import { heritageObjectJsonLdSchema, materialJsonLdSchema } from "./definitions.js";
 import { EOL } from "node:os";
 import path from "node:path";
 
@@ -62,16 +62,24 @@ type ToJsonLinesFilesInput = z.input<typeof toJsonLinesFilesInputSchema>;
 export async function toJsonLinesFiles(input: ToJsonLinesFilesInput) {
   const opts = toJsonLinesFilesInputSchema.parse(input);
 
-  const schemas = [heritageObjectJsonLdSchema];
+  const files = [
+    {
+      name: "materials.jsonl",
+      schema: materialJsonLdSchema,
+    },
+    {
+      name: "heritage-objects.jsonl",
+      schema: heritageObjectJsonLdSchema,
+    },
+  ];
 
-  for (let schema of schemas) {
-    const meta = schema.meta();
-    const outputFile = path.join(input.outputDir, `${meta?.title}.jsonl`);
+  for (let file of files) {
+    const outputFile = path.join(input.outputDir, file.name);
 
     await toJsonLinesFile({
       inputFile: opts.inputFile,
       outputFile: outputFile,
-      schema,
+      schema: file.schema,
     });
   }
 }

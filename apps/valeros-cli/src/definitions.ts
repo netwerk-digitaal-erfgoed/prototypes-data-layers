@@ -23,7 +23,19 @@ export const heritageObjectJsonLdSchema = z
       id: data["@id"],
       type: "CreativeWork",
     },
-  }))
-  .meta({
-    title: "heritage-objects",
-  });
+  }));
+
+export const materialJsonLdSchema = z
+  .object({
+    "@id": z.string(),
+    "@type": z.enum(["ext:Material"]),
+    "schema:name": z.preprocess(
+      (value) => (Array.isArray(value) ? value : [value]),
+      z.array(z.object({ "@value": z.string() }).transform((data) => data["@value"])),
+    ),
+  })
+  .transform((data) => ({
+    id: createHash("md5").update(data["@id"]).digest("hex"),
+    type: "DefinedTerm",
+    name: data["schema:name"]?.join("; "), // Merge into one string
+  }));
