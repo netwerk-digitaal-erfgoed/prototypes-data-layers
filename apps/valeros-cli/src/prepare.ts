@@ -253,16 +253,18 @@ async function toJsonLinesFile(input: ToJsonLinesFileInput) {
   });
 }
 
-const toJsonLinesFilesInputSchema = z.object({
+const prepareInputSchema = z.object({
   inputFile: z.string(),
   outputDir: z.string(),
 });
 
-type ToJsonLinesFilesInput = z.input<typeof toJsonLinesFilesInputSchema>;
+type PrepareInput = z.input<typeof prepareInputSchema>;
 
-export async function toJsonLinesFiles(input: ToJsonLinesFilesInput) {
-  const opts = toJsonLinesFilesInputSchema.parse(input);
+export async function prepare(input: PrepareInput) {
+  const opts = prepareInputSchema.parse(input);
 
+  // The names of the files are significant: these are also
+  // used as the names of the collections in the search index
   const files = [
     {
       name: "additional-types.jsonl",

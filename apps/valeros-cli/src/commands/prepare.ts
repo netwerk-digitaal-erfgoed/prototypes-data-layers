@@ -1,5 +1,5 @@
 import { defineCommand } from "citty";
-import { toJsonLinesFiles } from "../prepare.js";
+import { prepare } from "../prepare.js";
 
 export const buildArgs = {
   inputFile: {
@@ -17,11 +17,11 @@ export const buildArgs = {
 export default defineCommand({
   meta: {
     name: "prepare",
-    description: "Prepare data for importing into the search index",
+    description: "Prepare data for ingestion into the search index",
   },
   args: buildArgs,
   async run({ args }) {
-    await toJsonLinesFiles({
+    await prepare({
       inputFile: args.inputFile!,
       outputDir: args.outputDir!,
     });

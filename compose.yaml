@@ -6,6 +6,7 @@ services:
       - .:/app
     working_dir: /app
     command: bash
+    network_mode: host
 
   valeros-typesense:
     image: typesense/typesense:30.1
@@ -13,7 +14,7 @@ services:
     environment:
       TYPESENSE_API_KEY: ${TYPESENSE_API_KEY}
     ports:
-      - "8108:8108"
+      - 8108:8108
     volumes:
       - valeros-typesense-data:/data
     command: "--data-dir /data"
@@ -25,7 +26,7 @@ services:
     volumes:
       - .:/app
     ports:
-      - "3000:3000"
+      - 3000:3000
     working_dir: /app
     command: npx turbo run dev --filter @repo/valeros
     depends_on:

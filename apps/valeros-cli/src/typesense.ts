@@ -8,7 +8,7 @@ setDefaultConfiguration({
 });
 
 // Define collection schemas
-const genresSchema = collection({
+export const genresSchema = collection({
   name: "genres",
   fields: [
     { name: "type", type: "string" },
@@ -23,6 +23,4 @@ declare module "typesense-ts" {
   }
 }
 
-export async function createCollections() {
-  await genresSchema.create();
-}
+export const collectionSchemas = [genresSchema];

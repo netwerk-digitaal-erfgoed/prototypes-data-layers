@@ -14,7 +14,7 @@ fetch() {
 
   # Test for gzip
   if gzip -t "/tmp/$baseFileName" 2>/dev/null; then
-    gunzip -f "/tmp/$baseFileName"  # Remove the .gz suffix automatically
+    gunzip -f "/tmp/$baseFileName"  # Removes the .gz suffix automatically
     baseFileName="${baseFileName%.*}" # Remove the *last* dot‑extension, i.e. `.gz`
   fi
 
@@ -43,7 +43,7 @@ convert() {
   local inputFile="$1"
   local outputFile="$2"
 
-  echo "Transforming data in '$inputFile' to '$outputFile'..."
+  echo "Transforming data in '$inputFile' to '$outputFile'"
 
   # Remove existing file, if any
   rm -f $outputFile
@@ -59,7 +59,7 @@ prepare() {
   local outputFile="$3"
   local startTime=$SECONDS
 
-  echo "Preparing data from '$url'..."
+  echo "Preparing data from '$url'"
 
   outputDirName=$(dirname "$outputFile")
   outputBaseFileName=$(basename "$outputFile")

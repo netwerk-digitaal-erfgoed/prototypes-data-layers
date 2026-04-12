@@ -17,3 +17,4 @@ CLI for the data layer of Valeros. For use in development only.
 ## Convert
 
     npm run build && ./dist/valeros.mjs prepare --input-file data/collections-uu.jsonld --output-dir data
+    npm run build && ./dist/valeros.mjs ingest --input-dir data
