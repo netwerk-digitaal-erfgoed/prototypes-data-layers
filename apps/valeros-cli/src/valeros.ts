@@ -7,7 +7,8 @@ const main = defineCommand({
     description: "Valeros CLI",
   },
   subCommands: {
-    prepare: () => import("./prepare.js").then((r) => r.default),
+    import: () => import("./commands/import.js").then((r) => r.default),
+    prepare: () => import("./commands/prepare.js").then((r) => r.default),
   },
 });
 
