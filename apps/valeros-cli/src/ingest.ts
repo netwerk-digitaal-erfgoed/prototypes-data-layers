@@ -8,56 +8,46 @@ import { z } from "zod";
 import { CollectionSchema, collectionSchemas } from "./typesense.js";
 
 async function ingestFile(filePath: string, collectionSchema: CollectionSchema) {
-  let inFlightBatches = 0;
-  let resolveAllBatchesDone: () => void;
-  let rejectOnError = (_err: unknown) => {};
+  await new Promise<void>((resolve, reject) => {
+    let inFlightBatches = 0;
 
-  const allBatchesDone = new Promise<void>((resolve, reject) => {
-    resolveAllBatchesDone = resolve;
-    rejectOnError = reject;
-  });
-
-  // Import resources from the file in batches, to prevent
-  // overpowering Typesense with one, huge import request
-  const pipeline = chain([
-    createReadStream(filePath),
-    jsonlParser.asStream(),
-    batch({ batchSize: 25 }),
-  ]);
-
-  pipeline.on("end", () => {
-    if (inFlightBatches === 0) {
-      resolveAllBatchesDone();
-    }
-  });
-
-  pipeline.on("error", rejectOnError);
-
-  pipeline.on("data", (data) => {
-    const documents: JsonlItem["value"][] = [];
-    data.forEach((pair: JsonlItem) => {
-      documents.push(pair.value);
-    });
+    // Import resources from the file in batches, to prevent
+    // overpowering Typesense with one, huge import request
+    const pipeline = chain([
+      createReadStream(filePath),
+      jsonlParser.asStream(),
+      batch({ batchSize: 25 }),
+    ]);
 
     // Event emitters don't wait for async functions:
     // the `end` event may fire before all `import()`s complete.
     // Fix by counting in-flight batches and resolving when all
     // batches have finished.
-    inFlightBatches++;
+    pipeline.on("end", () => {
+      if (inFlightBatches === 0) {
+        resolve();
+      }
+    });
 
-    collectionSchema.documents
-      .import(documents, {
-        return_doc: false,
-      })
-      .finally(() => {
-        inFlightBatches--;
-        if (inFlightBatches === 0) {
-          resolveAllBatchesDone();
-        }
-      });
+    pipeline.on("error", reject);
+
+    pipeline.on("data", (data) => {
+      const documents = data.map((pair: JsonlItem) => pair.value);
+
+      inFlightBatches++;
+
+      collectionSchema.documents
+        .import(documents, {
+          return_doc: false,
+        })
+        .finally(() => {
+          inFlightBatches--;
+          if (inFlightBatches === 0) {
+            resolve();
+          }
+        });
+    });
   });
-
-  await allBatchesDone;
 }
 
 const ingestInputSchema = z.object({
