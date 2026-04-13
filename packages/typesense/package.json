@@ -1,0 +1,28 @@
+{
+  "name": "@repo/typesense",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./client": "./dist/client.mjs",
+    "./schemas": "./dist/schemas.mjs",
+    "./*": "./*"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "fix": "oxlint --fix",
+    "format": "oxfmt",
+    "lint": "oxlint"
+  },
+  "dependencies": {
+    "typesense-ts": "0.2.6",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "*",
+    "@types/node": "24.x.x",
+    "oxfmt": "0.43.0",
+    "oxlint": "1.58.0",
+    "tsdown": "0.21.7",
+    "typescript": "5.9.3"
+  }
+}

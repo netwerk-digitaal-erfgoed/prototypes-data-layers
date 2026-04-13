@@ -9,13 +9,17 @@
     "format": "oxfmt",
     "lint": "oxlint",
     "preview": "vite preview",
-    "start": "node .output/server/index.mjs"
+    "start": "node dist/server/index.mjs"
+  },
+  "dependencies": {
+    "@hono/standard-validator": "0.2.2",
+    "@repo/typesense": "*",
+    "hono": "4.12.10",
+    "nitro": "3.0.260311-beta"
   },
   "devDependencies": {
     "@repo/tsconfig": "*",
     "@types/node": "24.x.x",
-    "hono": "4.12.10",
-    "nitro": "3.0.260311-beta",
     "oxfmt": "0.43.0",
     "oxlint": "1.58.0",
     "typescript": "5.9.3",
