@@ -6,7 +6,7 @@ import { Env } from "./env.js";
 
 const app = new Hono<Env>();
 
-// Internal Typesense names to external API names
+// Internal search index names to external API names
 const facets = new Map([
   ["additional_type", "additionalType"],
   ["content_location", "contentLocation"],
@@ -17,42 +17,6 @@ const facets = new Map([
   ["material", "material"],
   ["publisher", "publisher"],
 ]);
-
-const paramsSchema = z.object({
-  page: z.coerce.number().min(1).catch(1),
-});
-
-const querySchema = z.object({
-  size: z.coerce.number().min(1).max(100).catch(10),
-  sort: z.string().optional(),
-  q: z.string().default("*"), // "All"
-  // E.g. `["creator:John", "material:paper"]`
-  filter: z.union([z.string().transform((value) => [value]), z.array(z.string())]).catch([]),
-});
-
-type Query = z.output<typeof querySchema>;
-
-app.get(
-  "/heritage-objects/page/:page",
-  sValidator("param", paramsSchema),
-  sValidator("query", querySchema),
-  async (c) => {
-    const params = c.req.valid("param");
-    const query = c.req.valid("query");
-
-    const searchResult = await search({
-      page: params.page,
-      size: query.size,
-      q: query.q,
-      sort: query.sort,
-      filter: buildFilter(query.filter),
-    });
-
-    const response = buildResponse(c, query, searchResult);
-
-    return c.json(response);
-  },
-);
 
 function buildFilter(filters: string[]) {
   let filter: string | undefined;
@@ -81,13 +45,18 @@ function buildFilter(filters: string[]) {
   return filter;
 }
 
-function getQueryString(query: Query) {
-  const searchParams = new URLSearchParams({
-    size: query.size.toString(),
-    q: query.q,
-  });
+function buildQueryString(query: CollectionQuery | PagedCollectionQuery) {
+  const searchParams = new URLSearchParams();
 
-  if (query.sort !== undefined) {
+  if ("size" in query) {
+    searchParams.set("size", query.size.toString());
+  }
+
+  if (query.q) {
+    searchParams.set("q", query.q);
+  }
+
+  if (query.sort) {
     searchParams.set("sort", query.sort!);
   }
 
@@ -126,9 +95,103 @@ function getNavPages(baseUri: string, queryString: string, searchResult: SearchR
   return navPages;
 }
 
-function buildResponse(c: Context<Env>, query: Query, searchResult: SearchResult) {
+const collectionQuerySchema = z.object({
+  sort: z.string().optional(),
+  q: z.string().default("*"), // "All"
+  // E.g. `["creator:John", "material:paper"]`
+  filter: z.union([z.string().transform((value) => [value]), z.array(z.string())]).catch([]),
+});
+
+type CollectionQuery = z.output<typeof collectionQuerySchema>;
+
+app.get("/v1/heritage-objects", sValidator("query", collectionQuerySchema), async (c) => {
+  const query = c.req.valid("query");
+
+  const searchResult = await search({
+    page: 1, // Required
+    size: 1, // Required
+    q: query.q,
+    sort: query.sort,
+    filter: buildFilter(query.filter),
+  });
+
+  const response = buildCollectionResponse(c, query, searchResult);
+
+  return c.json(response);
+});
+
+function buildCollectionResponse(
+  c: Context<Env>,
+  query: CollectionQuery,
+  searchResult: SearchResult,
+) {
   const baseUri = new URL(c.req.url).origin + "/v1";
-  const queryString = getQueryString(query);
+  const queryString = buildQueryString(query);
+  const navPages = getNavPages(baseUri, queryString, searchResult);
+
+  const response = {
+    id: `${baseUri}/heritage-objects${queryString}`,
+    type: "OrderedCollection",
+    first: navPages.get("first"),
+    last: navPages.get("last"),
+    totalItems: searchResult.found,
+    facets: searchResult.facet_counts.map((facet) => ({
+      type: "OrderedCollection",
+      name: facets.get(facet.field_name),
+      orderedItems: facet.counts.map((facetCounts) => ({
+        type: "FacetValue",
+        value: facetCounts.value,
+        count: facetCounts.count,
+      })),
+    })),
+  };
+
+  return response;
+}
+
+const pagedCollectionParamsSchema = z.object({
+  page: z.coerce.number().min(1).catch(1),
+});
+
+const pagedCollectionQuerySchema = z.object({
+  size: z.coerce.number().min(1).max(100).catch(10),
+  sort: z.string().optional(),
+  q: z.string().default("*"), // "All"
+  // E.g. `["creator:John", "material:paper"]`
+  filter: z.union([z.string().transform((value) => [value]), z.array(z.string())]).catch([]),
+});
+
+type PagedCollectionQuery = z.output<typeof pagedCollectionQuerySchema>;
+
+app.get(
+  "/v1/heritage-objects/page/:page",
+  sValidator("param", pagedCollectionParamsSchema),
+  sValidator("query", pagedCollectionQuerySchema),
+  async (c) => {
+    const params = c.req.valid("param");
+    const query = c.req.valid("query");
+
+    const searchResult = await search({
+      page: params.page,
+      size: query.size,
+      q: query.q,
+      sort: query.sort,
+      filter: buildFilter(query.filter),
+    });
+
+    const response = buildPagedCollectionResponse(c, query, searchResult);
+
+    return c.json(response);
+  },
+);
+
+function buildPagedCollectionResponse(
+  c: Context<Env>,
+  query: PagedCollectionQuery,
+  searchResult: SearchResult,
+) {
+  const baseUri = new URL(c.req.url).origin + "/v1";
+  const queryString = buildQueryString(query);
   const navPages = getNavPages(baseUri, queryString, searchResult);
 
   const response = {

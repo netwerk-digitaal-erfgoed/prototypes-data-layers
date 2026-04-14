@@ -138,7 +138,7 @@ export async function search(input: SearchInput): Promise<SearchResult> {
     per_page: opts.size,
     q: opts.q,
     query_by: ["name", "additional_type", "genre", "material", "content_location", "creator"],
-    filter_by: opts.filter,
+    filter_by: opts.filter !== undefined ? opts.filter : "",
     // @ts-expect-error - Typesense lib type struggle
     exclude_fields: excludeFields,
     // @ts-expect-error - Typesense lib doesn't support join fields

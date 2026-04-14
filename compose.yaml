@@ -28,7 +28,7 @@ services:
     ports:
       - 3000:3000
     working_dir: /app
-    command: npx turbo run dev --filter @repo/valeros
+    command: npx turbo run start --filter=@repo/valeros
     network_mode: host
     depends_on:
       - valeros-typesense
