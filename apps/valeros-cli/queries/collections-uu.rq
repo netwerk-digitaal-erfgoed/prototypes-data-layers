@@ -1,0 +1,134 @@
+# Quick and dirty query for preparing the data for ingestion into the search index.
+# See also: https://collections.uu.nl/datasetregister
+
+PREFIX ext: <https://example.org/>
+PREFIX schema: <https://schema.org/>
+
+CONSTRUCT {
+  ?cho a ?choType ;
+    ext:name ?name ;
+    ext:isPartOf ?dataset ;
+    ext:datasetName ?datasetName ;
+    ext:publisher ?publisher ;
+    ext:publisherName ?publisherName ;
+    ext:license ?license ;
+    ext:licenseName ?licenseName ;
+    ext:description ?description ;
+    ext:dateCreated ?dateCreated ;
+    ext:creator ?creatorId ;
+    ext:creatorName ?creatorName ;
+    ext:genre ?genreId ;
+    ext:genreName ?genreName ;
+    ext:material ?materialId ;
+    ext:materialName ?materialName ;
+    ext:additionalType ?additionalTypeId ;
+    ext:additionalTypeName ?additionalTypeName ;
+    ext:contentLocation ?contentLocationId ;
+    ext:contentLocationName ?contentLocationName ;
+    ext:associatedMedia ?associatedMediaId .
+
+  ?dataset a ext:Dataset ;
+    ext:name ?datasetName ;
+    ext:license ?license ;
+    ext:publisher ?publisher .
+
+  ?license a ext:License ;
+    ext:name ?licenseName ;
+    ext:isBasedOn ?originalLicense .
+
+  ?publisher a ext:Organization ;
+    ext:name ?publisherName .
+
+  ?creatorId a ext:Creator ;
+    ext:name ?creatorName .
+
+  ?genreId a ext:Genre ;
+    ext:name ?genreName .
+
+  ?materialId a ext:Material ;
+    ext:name ?materialName .
+
+  ?additionalTypeId a ext:AdditionalType ;
+    ext:name ?additionalTypeName .
+
+  ?contentLocationId a ext:ContentLocation ;
+    ext:name ?contentLocationName .
+
+  ?associatedMediaId a ?associatedMediaType ;
+    ext:license ?mediaObjectLicense ;
+    ext:contentUrl ?contentUrl ;
+    ext:thumbnailUrl ?thumbnailUrl ;
+    ext:isBasedOn ?isBasedOn .
+
+  ?isBasedOn a ext:MediaObject ;
+    ext:encodingFormat ?encodingFormat .
+}
+WHERE {
+  #Examples:
+  #BIND(<https://n2t.net/ark:/40020/collect163299> AS ?cho)
+  #BIND(<https://n2t.net/ark:/40020/collect95460> AS ?cho)
+
+  ?cho a ?choType ;
+    schema:name ?name ;
+    schema:isPartOf ?originalDataset .
+
+  ?originalDataset a schema:Dataset .
+  BIND(IRI(CONCAT("https://example.org/datasets/", MD5(STR(?originalDataset)))) AS ?dataset)
+  BIND("Collectie Universiteitsmuseum Utrecht"@nl AS ?datasetName)
+  BIND(IRI(CONCAT("https://example.org/publishers/", MD5("https://www.umu.nl"))) AS ?publisher)
+  BIND("Universiteitsmuseum Utrecht"@nl AS ?publisherName)
+  BIND(IRI("http://standaarden.overheid.nl/owms/terms/geslotenlicentie") AS ?originalLicense)
+  BIND(IRI(CONCAT("https://example.org/licenses/", MD5(STR(?originalLicense)))) AS ?license)
+  BIND("Gesloten licentie"@nl AS ?licenseName)
+
+  ?cho schema:creator ?creator .
+  ?creator schema:name ?creatorName .
+  BIND(IRI(CONCAT("https://example.org/creators/", MD5(STR(?creatorName)))) AS ?creatorId)
+
+  OPTIONAL { ?cho schema:description ?description }
+  OPTIONAL { ?cho schema:dateCreated ?dateCreated }
+
+  OPTIONAL {
+    ?cho schema:genre ?genre .
+    ?genre schema:name ?genreName .
+    BIND(IRI(CONCAT("https://example.org/genres/", MD5(STR(?genreName)))) AS ?genreId)
+  }
+
+  OPTIONAL {
+    ?cho schema:material ?material .
+    ?material schema:name ?materialName .
+    BIND(IRI(CONCAT("https://example.org/materials/", MD5(STR(?materialName)))) AS ?materialId)
+  }
+
+  OPTIONAL {
+    ?cho schema:additionalType ?additionalType .
+    ?additionalType schema:name ?additionalTypeName .
+    BIND(IRI(CONCAT("https://example.org/additional-types/", MD5(STR(?additionalTypeName)))) AS ?additionalTypeId)
+  }
+
+  OPTIONAL {
+    ?cho schema:contentLocation ?contentLocation .
+    ?contentLocation schema:name ?contentLocationName .
+    BIND(IRI(CONCAT("https://example.org/places/", MD5(STR(?contentLocationName)))) AS ?contentLocationId)
+  }
+
+  ?cho schema:associatedMedia ?associatedMedia .
+  ?associatedMedia a ?associatedMediaType ;
+    schema:contentUrl ?contentUrl ;
+    schema:thumbnailUrl ?thumbnailUrl .
+  BIND(IRI(CONCAT("https://example.org/media-objects/", MD5(STR(?contentUrl)))) AS ?associatedMediaId)
+
+  # Missing in the source data - assume it's the same license as the dataset
+  BIND(?license AS ?mediaObjectLicense)
+
+  # IIIF support is optional
+  OPTIONAL {
+    ?associatedMedia schema:isBasedOn ?isBasedOnRaw .
+
+    # Remove the trailing "/info.json"
+    BIND(IRI(STRBEFORE(STR(?isBasedOnRaw), "/info.json")) AS ?isBasedOn)
+
+    # Missing in the source data
+    BIND("application/ld+json;profile='http://iiif.io/api/image/3/context.json'" AS ?encodingFormat)
+  }
+}

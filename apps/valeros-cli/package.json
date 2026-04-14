@@ -1,0 +1,24 @@
+{
+  "name": "@repo/valeros-cli",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsdown",
+    "fix": "oxlint --fix",
+    "format": "oxfmt",
+    "lint": "oxlint"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "*",
+    "@repo/typesense": "*",
+    "@types/node": "24.x.x",
+    "citty": "0.2.2",
+    "oxfmt": "0.43.0",
+    "oxlint": "1.58.0",
+    "stream-chain": "3.6.1",
+    "stream-json": "2.1.0",
+    "tsdown": "0.21.7",
+    "typescript": "5.9.3",
+    "zod": "4.3.6"
+  }
+}
