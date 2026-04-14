@@ -38,10 +38,11 @@ const searchInputSchema = z.object({
   size: z.number(),
   sort: z.string().optional(),
   q: z.string(),
-  filter: z.array(z.string()).optional(),
+  // E.g. `creator:=John && material:=paper`
+  filter: z.string().optional(),
 });
 
-type SearchInput = z.input<typeof searchInputSchema>;
+type SearchInput = z.output<typeof searchInputSchema>;
 
 const resourceHit = z.array(
   z.object({
@@ -137,6 +138,7 @@ export async function search(input: SearchInput): Promise<SearchResult> {
     per_page: opts.size,
     q: opts.q,
     query_by: ["name", "additional_type", "genre", "material", "content_location", "creator"],
+    filter_by: opts.filter,
     // @ts-expect-error - Typesense lib type struggle
     exclude_fields: excludeFields,
     // @ts-expect-error - Typesense lib doesn't support join fields

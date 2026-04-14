@@ -22,12 +22,11 @@ const paramsSchema = z.object({
   page: z.coerce.number().min(1).catch(1),
 });
 
-type Params = z.output<typeof paramsSchema>;
-
 const querySchema = z.object({
   size: z.coerce.number().min(1).max(100).catch(10),
   sort: z.string().optional(),
   q: z.string().default("*"), // "All"
+  // E.g. `["creator:John", "material:paper"]`
   filter: z.union([z.string().transform((value) => [value]), z.array(z.string())]).catch([]),
 });
 
@@ -46,18 +45,43 @@ app.get(
       size: query.size,
       q: query.q,
       sort: query.sort,
-      filter: query.filter,
+      filter: buildFilter(query.filter),
     });
 
-    const response = buildResponse(c, params, query, searchResult);
+    const response = buildResponse(c, query, searchResult);
 
     return c.json(response);
   },
 );
 
-function buildResponse(c: Context<Env>, params: Params, query: Query, searchResult: SearchResult) {
-  const baseUri = new URL(c.req.url).origin + "/v1";
+function buildFilter(filters: string[]) {
+  let filter: string | undefined;
+  const internalFilters: string[] = [];
 
+  for (const filter of filters) {
+    // Keep only filters of format `key:value`, e.g. `dateCreated:=1900` or `dateCreated:>1900`
+    const [key, value] = filter.split(":", 2);
+    if (!key || !value) {
+      continue; // Undefined or empty
+    }
+
+    // Translate external keys (e.g. `dateCreated`) to internal keys (e.g. `date_created`)
+    facets.forEach((externalName, internalName) => {
+      if (key === externalName) {
+        internalFilters.push(`${internalName}:${value}`);
+      }
+    });
+  }
+
+  if (internalFilters.length > 0) {
+    // E.g. `creator:=John && date_created:>1900`
+    filter = internalFilters.join(" && ");
+  }
+
+  return filter;
+}
+
+function getQueryString(query: Query) {
   const searchParams = new URLSearchParams({
     size: query.size.toString(),
     q: query.q,
@@ -73,7 +97,45 @@ function buildResponse(c: Context<Env>, params: Params, query: Query, searchResu
 
   const queryString = searchParams.size > 0 ? "?" + searchParams.toString() : "";
 
+  return queryString;
+}
+
+function getNavPages(baseUri: string, queryString: string, searchResult: SearchResult) {
+  const navPages = new Map<string, string>();
+
+  const currentPage = searchResult.page;
+  const maxPage = Math.ceil(searchResult.found / searchResult.request_params.per_page);
+  const nextPage = currentPage + 1;
+  const prevPage = currentPage - 1;
+
+  navPages.set("current", `${baseUri}/heritage-objects/page/${currentPage}${queryString}`);
+
+  if (searchResult.found > 0) {
+    navPages.set("first", `${baseUri}/heritage-objects/page/1${queryString}`);
+    navPages.set("last", `${baseUri}/heritage-objects/page/${maxPage}${queryString}`);
+  }
+
+  if (nextPage <= maxPage) {
+    navPages.set("next", `${baseUri}/heritage-objects/page/${nextPage}${queryString}`);
+  }
+
+  if (prevPage > 0) {
+    navPages.set("prev", `${baseUri}/heritage-objects/page/${prevPage}${queryString}`);
+  }
+
+  return navPages;
+}
+
+function buildResponse(c: Context<Env>, query: Query, searchResult: SearchResult) {
+  const baseUri = new URL(c.req.url).origin + "/v1";
+  const queryString = getQueryString(query);
+  const navPages = getNavPages(baseUri, queryString, searchResult);
+
   const response = {
+    id: navPages.get("current"),
+    type: "OrderedCollectionPage",
+    next: navPages.get("next"),
+    prev: navPages.get("prev"),
     orderedItems: searchResult.hits.map((hit) => ({
       id: `${baseUri}/heritage-objects/${hit.document.id}`,
       type: hit.document.type,
@@ -140,6 +202,8 @@ function buildResponse(c: Context<Env>, params: Params, query: Query, searchResu
     partOf: {
       id: `${baseUri}/heritage-objects${queryString}`,
       type: "OrderedCollection",
+      first: navPages.get("first"),
+      last: navPages.get("last"),
       totalItems: searchResult.found,
       facets: searchResult.facet_counts.map((facet) => ({
         type: "OrderedCollection",
