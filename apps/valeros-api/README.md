@@ -1,3 +1,3 @@
-# Valeros
+# Valeros API
 
-Prototype of the data layer of Valeros
+Prototype of the API of the data layer of Valeros

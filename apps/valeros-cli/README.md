@@ -1,6 +1,6 @@
 # Valeros CLI
 
-CLI for the data layer of Valeros.
+CLI of the data layer of Valeros
 
 ## Development with Docker
 
