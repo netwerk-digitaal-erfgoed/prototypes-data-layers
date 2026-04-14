@@ -164,9 +164,9 @@ All endpoints accept and return the same HTTP headers:
     "last": "https://example.org/v1/heritage-objects/page/20?size=10&q=lab*&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
     "facets": [
       {
-        "type": "Collection",
+        "type": "OrderedCollection",
         "name": "creator",
-        "items": [
+        "orderedItems": [
           {
             "type": "FacetValue",
             "value": "John Doe",

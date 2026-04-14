@@ -1,5 +1,6 @@
 # Build outputs
-.output
+dist
+data
 
 # Dependencies
 node_modules
