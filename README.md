@@ -17,7 +17,11 @@ Run the Valeros services:
 
     docker compose up valeros-typesense valeros-api
 
-## Running Valeros with Docker
+## Run Valeros with Docker
+
+Set the `.env` file:
+
+    cp .env.dist .env
 
 Install packages:
 
@@ -38,13 +42,19 @@ Import data into the search engine with the Valeros CLI:
 Then:
 
     ./prepare.sh --url "https://collections.uu.nl/datadump_28-03-2026.jsonld.gz" --query-file "queries/collections-uu.rq" --output-file "data/collections-uu.jsonld"
+
     ./valeros.mjs prepare --input-file "data/collections-uu.jsonld" --output-dir "data"
+
     ./valeros.mjs ingest --input-dir "data"
+
     exit
 
 Use the Valeros API:
 
     curl -i http://localhost:3000/health
+
     curl http://localhost:3000/v1/heritage-objects
+
     curl http://localhost:3000/v1/heritage-objects/page/1
+
     curl http://localhost:3000/v1/heritage-objects/page/1?size=10&q=onderwijs&filter=contentLocation%3ABerlijn
