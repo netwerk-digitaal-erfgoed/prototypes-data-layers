@@ -83,6 +83,7 @@ const searchResultSchema = z.object({
         type: z.array(z.string()),
         name: z.string(),
         description: z.string().optional(),
+        date_created: z.string().optional(),
         additional_types: resourceHit.optional(),
         content_locations: resourceHit.optional(),
         creators: resourceHit.optional(),
@@ -126,7 +127,9 @@ const searchResultSchema = z.object({
   ),
 });
 
-export async function search(input: SearchInput) {
+export type SearchResult = z.output<typeof searchResultSchema>;
+
+export async function search(input: SearchInput): Promise<SearchResult> {
   const opts = searchInputSchema.parse(input);
 
   const response = await heritageObjectsSchema.search({
