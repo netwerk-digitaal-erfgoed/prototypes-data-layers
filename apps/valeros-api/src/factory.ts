@@ -1,6 +1,7 @@
 import { env } from "hono/adapter";
 import { createFactory } from "hono/factory";
 import { logger } from "hono/logger";
+import { cors } from "hono/cors";
 import { trimTrailingSlash } from "hono/trailing-slash";
 import { setConfiguration } from "@repo/typesense/client";
 import { Bindings, Env } from "./env.js";
@@ -8,6 +9,7 @@ import { Bindings, Env } from "./env.js";
 export const factory = createFactory<Env>({
   initApp: (app) => {
     app.use(
+      cors(),
       logger(),
       trimTrailingSlash(), // Redirect `/page/` to `/page`
     );
