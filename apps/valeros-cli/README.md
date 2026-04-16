@@ -12,11 +12,14 @@ Run these commands in the root of the repo:
 
 ### Run
 
-    docker run --network host -i --rm --env-file .env -t valeros-cli
+    docker run --network host -i --rm -v "$PWD":/app --env-file .env -t valeros-cli
 
-### Steps for ingesting a dataset into the search index
+### Steps for ingesting dataset distributions into the search index
 
     npm run build
-    ./scripts/prepare.sh --url "https://collections.uu.nl/datadump_28-03-2026.jsonld.gz" --query-file "queries/collections-uu.rq" --output-file "data/collections-uu.jsonld"
-    ./dist/valeros.mjs prepare --input-file "data/collections-uu.jsonld" --output-dir "data"
-    ./dist/valeros.mjs ingest --input-dir "data"
+
+    ./scripts/prepare.sh --output-file data/ingest.jsonld
+
+    ./dist/valeros.mjs prepare --input-file data/ingest.jsonld --output-dir data/ingest
+
+    ./dist/valeros.mjs ingest --input-dir data/ingest

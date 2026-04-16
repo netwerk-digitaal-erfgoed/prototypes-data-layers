@@ -1,4 +1,4 @@
-# Quick and dirty query for preparing the data for ingestion into the search index.
+# Simple query for preparing the data for ingestion into the search index.
 # See also: https://collections.uu.nl/datasetregister
 
 PREFIX ext: <https://example.org/>
@@ -7,12 +7,12 @@ PREFIX schema: <https://schema.org/>
 CONSTRUCT {
   ?cho a ?choType ;
     ext:name ?name ;
-    ext:isPartOf ?dataset ;
+    ext:dataset ?dataset ;
     ext:datasetName ?datasetName ;
     ext:publisher ?publisher ;
     ext:publisherName ?publisherName ;
-    ext:license ?license ;
-    ext:licenseName ?licenseName ;
+    ext:license ?datasetLicense ;
+    ext:licenseName ?datasetLicenseName ;
     ext:description ?description ;
     ext:dateCreated ?dateCreated ;
     ext:creator ?creatorId ;
@@ -29,12 +29,12 @@ CONSTRUCT {
 
   ?dataset a ext:Dataset ;
     ext:name ?datasetName ;
-    ext:license ?license ;
+    ext:license ?datasetLicense ;
     ext:publisher ?publisher .
 
-  ?license a ext:License ;
-    ext:name ?licenseName ;
-    ext:isBasedOn ?originalLicense .
+  ?datasetLicense a ext:License ;
+    ext:name ?datasetLicenseName ;
+    ext:isBasedOn ?originalDatasetLicense .
 
   ?publisher a ext:Organization ;
     ext:name ?publisherName .
@@ -72,21 +72,28 @@ WHERE {
     schema:name ?name ;
     schema:isPartOf ?originalDataset .
 
+  # Normally this info comes from the NDE Dataset Register
   ?originalDataset a schema:Dataset .
   BIND(IRI(CONCAT("https://example.org/datasets/", MD5(STR(?originalDataset)))) AS ?dataset)
   BIND("Collectie Universiteitsmuseum Utrecht"@nl AS ?datasetName)
   BIND(IRI(CONCAT("https://example.org/publishers/", MD5("https://www.umu.nl"))) AS ?publisher)
   BIND("Universiteitsmuseum Utrecht"@nl AS ?publisherName)
-  BIND(IRI("http://standaarden.overheid.nl/owms/terms/geslotenlicentie") AS ?originalLicense)
-  BIND(IRI(CONCAT("https://example.org/licenses/", MD5(STR(?originalLicense)))) AS ?license)
-  BIND("Gesloten licentie"@nl AS ?licenseName)
+  BIND(IRI("http://standaarden.overheid.nl/owms/terms/geslotenlicentie") AS ?originalDatasetLicense)
+  BIND(IRI(CONCAT("https://example.org/licenses/", MD5(STR(?originalDatasetLicense)))) AS ?datasetLicense)
+  BIND("Gesloten licentie"@nl AS ?datasetLicenseName)
 
   ?cho schema:creator ?creator .
   ?creator schema:name ?creatorName .
   BIND(IRI(CONCAT("https://example.org/creators/", MD5(STR(?creatorName)))) AS ?creatorId)
 
   OPTIONAL { ?cho schema:description ?description }
-  OPTIONAL { ?cho schema:dateCreated ?dateCreated }
+
+  OPTIONAL {
+    # Omit the language tag from the date - not according to the NDE spec, e.g.
+    # `schema:dateCreated "1910"@nl` -> `schema:dateCreated "1910"`
+    ?cho schema:dateCreated ?originalDateCreated
+    BIND(STR(?originalDateCreated) AS ?dateCreated)
+  }
 
   OPTIONAL {
     ?cho schema:genre ?genre .
@@ -114,12 +121,15 @@ WHERE {
 
   ?cho schema:associatedMedia ?associatedMedia .
   ?associatedMedia a ?associatedMediaType ;
-    schema:contentUrl ?contentUrl ;
-    schema:thumbnailUrl ?thumbnailUrl .
+    schema:contentUrl ?contentUrlAsString ;
+    schema:thumbnailUrl ?thumbnailUrlAsString .
+
+  BIND(IRI(?contentUrlAsString) AS ?contentUrl)
+  BIND(IRI(?thumbnailUrlAsString) AS ?thumbnailUrl)
   BIND(IRI(CONCAT("https://example.org/media-objects/", MD5(STR(?contentUrl)))) AS ?associatedMediaId)
 
   # Missing in the source data - assume it's the same license as the dataset
-  BIND(?license AS ?mediaObjectLicense)
+  BIND(?datasetLicense AS ?mediaObjectLicense)
 
   # IIIF support is optional
   OPTIONAL {

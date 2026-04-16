@@ -35,17 +35,17 @@ In another terminal, build the Valeros CLI:
 
     docker build -f apps/valeros-cli/Dockerfile -t valeros-cli .
 
-Import data into the search engine with the Valeros CLI:
+Run the Valeros CLI container:
 
     docker run --network host -i --rm --env-file .env -t valeros-cli
 
-Then:
+Import data into the search index with the Valeros CLI:
 
-    ./prepare.sh --url "https://collections.uu.nl/datadump_28-03-2026.jsonld.gz" --query-file "queries/collections-uu.rq" --output-file "data/collections-uu.jsonld"
+    ./prepare.sh --output-file data/ingest.jsonld
 
-    ./valeros.mjs prepare --input-file "data/collections-uu.jsonld" --output-dir "data"
+    ./valeros.mjs prepare --input-file data/ingest.jsonld --output-dir data/ingest
 
-    ./valeros.mjs ingest --input-dir "data"
+    ./valeros.mjs ingest --input-dir data/ingest
 
     exit
 
@@ -56,5 +56,7 @@ Use the Valeros API:
     curl http://localhost:3000/v1/heritage-objects
 
     curl http://localhost:3000/v1/heritage-objects/page/1
+
+    curl http://localhost:3000/v1/heritage-objects/page/1?size=10&q=nederland
 
     curl http://localhost:3000/v1/heritage-objects/page/1?size=10&q=onderwijs&filter=contentLocation%3ABerlijn
