@@ -137,7 +137,19 @@ export async function search(input: SearchInput): Promise<SearchResult> {
     page: opts.page,
     per_page: opts.size,
     q: opts.q,
-    query_by: ["name", "additional_type", "genre", "material", "content_location", "creator"],
+    // The order matters: "A document that matches on a field earlier in
+    // the list of query_by fields is considered more relevant than a
+    // document matched on a field later in the list."
+    // (https://typesense.org/docs/guide/ranking-and-relevance.html)
+    query_by: [
+      "name",
+      "description",
+      "creator",
+      "content_location",
+      "additional_type",
+      "genre",
+      "material",
+    ],
     filter_by: opts.filter !== undefined ? opts.filter : "",
     // @ts-expect-error - Typesense lib type struggle
     exclude_fields: excludeFields,
@@ -145,12 +157,12 @@ export async function search(input: SearchInput): Promise<SearchResult> {
     include_fields: includeFields,
     facet_by: [
       "additional_type",
-      "genre",
-      "material",
       "content_location",
       "creator",
-      "license",
       "dataset",
+      "genre",
+      "license",
+      "material",
       "publisher",
     ],
   });

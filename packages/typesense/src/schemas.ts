@@ -8,6 +8,12 @@ export const additionalTypeSchema = collection({
   ],
 });
 
+export type AdditionalType = {
+  id: string;
+  type: string;
+  name: string;
+};
+
 export const contentLocationsSchema = collection({
   name: "content_locations",
   fields: [
@@ -15,6 +21,12 @@ export const contentLocationsSchema = collection({
     { name: "name", type: "string" },
   ],
 });
+
+export type ContentLocation = {
+  id: string;
+  type: string;
+  name: string;
+};
 
 export const creatorsSchema = collection({
   name: "creators",
@@ -24,6 +36,12 @@ export const creatorsSchema = collection({
   ],
 });
 
+export type Creator = {
+  id: string;
+  type: string;
+  name: string;
+};
+
 export const datasetsSchema = collection({
   name: "datasets",
   fields: [
@@ -32,6 +50,12 @@ export const datasetsSchema = collection({
   ],
 });
 
+export type Dataset = {
+  id: string;
+  type: string;
+  name: string;
+};
+
 export const genresSchema = collection({
   name: "genres",
   fields: [
@@ -39,6 +63,12 @@ export const genresSchema = collection({
     { name: "name", type: "string" },
   ],
 });
+
+export type Genre = {
+  id: string;
+  type: string;
+  name: string;
+};
 
 export const heritageObjectsSchema = collection({
   name: "heritage_objects",
@@ -81,6 +111,35 @@ export const heritageObjectsSchema = collection({
   ],
 });
 
+export type HeritageObject = {
+  id: string;
+  type: string[];
+  additional_type?: string[];
+  additional_type_id?: string[];
+  content_location?: string[];
+  content_location_id?: string[];
+  creator?: string[];
+  creator_id?: string[];
+  date_created?: string;
+  dataset: string;
+  dataset_id: string;
+  description?: string;
+  genre?: string[];
+  genre_id?: string[];
+  is_based_on: {
+    id: string;
+    type: string;
+  };
+  license: string;
+  license_id: string;
+  material?: string[];
+  material_id?: string[];
+  media_object_id?: string[];
+  name: string;
+  publisher: string;
+  publisher_id: string;
+};
+
 export const licensesSchema = collection({
   name: "licenses",
   fields: [
@@ -90,6 +149,13 @@ export const licensesSchema = collection({
   ],
 });
 
+export type License = {
+  id: string;
+  type: string;
+  name: string;
+  is_based_on: string;
+};
+
 export const materialsSchema = collection({
   name: "materials",
   fields: [
@@ -97,6 +163,12 @@ export const materialsSchema = collection({
     { name: "name", type: "string" },
   ],
 });
+
+export type Material = {
+  id: string;
+  type: string;
+  name: string;
+};
 
 export const mediaObjectsSchema = collection({
   name: "media_objects",
@@ -107,11 +179,24 @@ export const mediaObjectsSchema = collection({
     { name: "thumbnail_url", type: "string" },
     { name: "license_id", type: "string", reference: "licenses.id" },
     { name: "is_based_on", type: "object", optional: true },
-    { name: "is_based_on.id", type: "string" },
-    { name: "is_based_on.type", type: "string" },
-    { name: "is_based_on.encoding_format", type: "string" },
+    { name: "is_based_on.id", type: "string", optional: true },
+    { name: "is_based_on.type", type: "string", optional: true },
+    { name: "is_based_on.encoding_format", type: "string", optional: true },
   ],
 });
+
+export type MediaObject = {
+  id: string;
+  type: string[];
+  content_url: string;
+  thumbnail_url: string;
+  license_id: string;
+  is_based_on?: {
+    id: string;
+    type: string;
+    encoding_format: string;
+  };
+};
 
 export const publishersSchema = collection({
   name: "publishers",
@@ -120,6 +205,12 @@ export const publishersSchema = collection({
     { name: "name", type: "string" },
   ],
 });
+
+export type Publisher = {
+  id: string;
+  type: string;
+  name: string;
+};
 
 // Register the collections globally for type safety
 declare module "typesense-ts" {

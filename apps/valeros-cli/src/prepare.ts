@@ -1,5 +1,7 @@
+import { MediaObject } from "@repo/typesense/schemas";
 import { createHash } from "node:crypto";
 import { createReadStream, createWriteStream } from "node:fs";
+import { mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { chain } from "stream-chain";
 import { pick } from "stream-json/filters/pick.js";
@@ -16,6 +18,12 @@ const idSchemaOne = z.object({ "@id": z.string() }).transform((data) => data["@i
 const idSchemaMultiple = z.preprocess(
   (value) => (Array.isArray(value) ? value : [value]),
   z.array(idSchemaOne),
+);
+
+// Plain literal, without a language tag (e.g. a date)
+const literalSchemaMultiple = z.preprocess(
+  (value) => (Array.isArray(value) ? value : [value]),
+  z.array(z.string()),
 );
 
 const valueSchemaOne = z.object({ "@value": z.string() }).transform((data) => data["@value"]);
@@ -91,11 +99,12 @@ const heritageObjectJsonLdSchema = z
     "@type": z.preprocess(
       (value) => (Array.isArray(value) ? value : [value]),
       z.array(
-        z.string().transform((data) => data.replace("schema:", "")), // Remove prefix
+        // Remove prefix, e.g. `schema:CreativeWork` or `sdo:Chapter`
+        z.string().transform((data) => data.replace(/^.*:/, "")),
       ),
     ),
     "ext:name": valueSchemaMultiple,
-    "ext:dateCreated": valueSchemaMultiple.optional(),
+    "ext:dateCreated": literalSchemaMultiple.optional(),
     "ext:description": valueSchemaMultiple.optional(),
     "ext:additionalType": idSchemaMultiple.optional(),
     "ext:additionalTypeName": valueSchemaMultiple.optional(),
@@ -104,7 +113,7 @@ const heritageObjectJsonLdSchema = z
     "ext:contentLocationName": valueSchemaMultiple.optional(),
     "ext:creator": idSchemaMultiple,
     "ext:creatorName": valueSchemaMultiple,
-    "ext:isPartOf": idSchemaOne,
+    "ext:dataset": idSchemaOne,
     "ext:datasetName": valueSchemaOne,
     "ext:genre": idSchemaMultiple.optional(),
     "ext:genreName": valueSchemaMultiple.optional(),
@@ -129,7 +138,7 @@ const heritageObjectJsonLdSchema = z
     creator: data["ext:creatorName"],
     creator_id: data["ext:creator"]?.map((id) => createIdFrom(id)),
     dataset: data["ext:datasetName"],
-    dataset_id: createIdFrom(data["ext:isPartOf"]),
+    dataset_id: createIdFrom(data["ext:dataset"]),
     genre: data["ext:genreName"],
     genre_id: data["ext:genre"]?.map((id) => createIdFrom(id)),
     license: data["ext:licenseName"],
@@ -181,23 +190,31 @@ const mediaObjectJsonLdSchema = z
           .transform((data) => data.replace("schema:", "")), // Remove prefix
       ),
     ),
-    "ext:contentUrl": z.string(),
-    "ext:thumbnailUrl": z.string(),
+    "ext:contentUrl": idSchemaOne,
+    "ext:thumbnailUrl": idSchemaOne,
     "ext:license": idSchemaOne,
     "ext:isBasedOn": idSchemaOne.optional(),
   })
-  .transform((data) => ({
-    id: createIdFrom(data["@id"]),
-    type: data["@type"],
-    content_url: data["ext:contentUrl"],
-    thumbnail_url: data["ext:thumbnailUrl"],
-    license_id: createIdFrom(data["ext:license"]),
-    is_based_on: {
-      id: data["ext:isBasedOn"],
-      type: "CreativeWork",
-      encoding_format: "application/ld+json;profile='http://iiif.io/api/image/3/context.json'",
-    },
-  }));
+  .transform((data) => {
+    const mediaObject: MediaObject = {
+      id: createIdFrom(data["@id"]),
+      type: data["@type"],
+      content_url: data["ext:contentUrl"],
+      thumbnail_url: data["ext:thumbnailUrl"],
+      license_id: createIdFrom(data["ext:license"]),
+    };
+
+    // IIIF support is optional
+    if (data["ext:isBasedOn"]) {
+      mediaObject.is_based_on = {
+        id: data["ext:isBasedOn"],
+        type: "CreativeWork",
+        encoding_format: "application/ld+json;profile='http://iiif.io/api/image/3/context.json'",
+      };
+    }
+
+    return mediaObject;
+  });
 
 const publishersJsonLdSchema = z
   .object({
@@ -258,6 +275,10 @@ type PrepareInput = z.input<typeof prepareInputSchema>;
 export async function prepare(input: PrepareInput) {
   const opts = prepareInputSchema.parse(input);
 
+  // Remove files from a previous run, if any
+  await rm(input.outputDir, { recursive: true, force: true });
+  await mkdir(input.outputDir, { recursive: true });
+
   // The names of the files are significant: these determine the
   // import order and the names of the collections in the search index
   const files = [
@@ -282,7 +303,7 @@ export async function prepare(input: PrepareInput) {
       schema: genreJsonLdSchema,
     },
     {
-      name: "02.heritage_objects.jsonl",
+      name: "03.heritage_objects.jsonl",
       schema: heritageObjectJsonLdSchema,
     },
     {
@@ -294,7 +315,7 @@ export async function prepare(input: PrepareInput) {
       schema: materialJsonLdSchema,
     },
     {
-      name: "01.media_objects.jsonl",
+      name: "02.media_objects.jsonl",
       schema: mediaObjectJsonLdSchema,
     },
     {
