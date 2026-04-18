@@ -21,7 +21,7 @@ fetch() {
   local outputExtension="${outputFile##*.}" # E.g. `nq`
 
   # Validate and convert the distribution
-  riot --output $outputExtension "/tmp/$baseFileName" > "$outputFile"
+  riot --merge --output $outputExtension "/tmp/$baseFileName" > "$outputFile"
 }
 
 map() {
@@ -51,14 +51,15 @@ prepare() {
 
   mkdir -p $outputDirName
 
-  local nquadsFile="$outputFile.nq"
+  # Discard quads, if any, by using N-Triples
+  local ntriplesFile="$outputFile.nt"
 
   # Optimization for testing: do not fetch again if the file already exists
-  if [[ ! -e "$nquadsFile" ]]; then
-    fetch "$url" "$nquadsFile"
+  if [[ ! -e "$ntriplesFile" ]]; then
+    fetch "$url" "$ntriplesFile"
   fi
 
-  map "$nquadsFile" "$queryFile" "$outputFile"
+  map "$ntriplesFile" "$queryFile" "$outputFile"
 
   local endTime=$SECONDS
   local duration=$((endTime-startTime))

@@ -45,12 +45,12 @@ CONSTRUCT {
   ?materialId a ext:Material ;
     ext:name ?materialName .
 
-  ?imageLicense a ext:License ;
-    ext:name ?imageLicenseName ;
-    ext:isBasedOn ?originalImageLicense .
+  ?mediaObjectLicense a ext:License ;
+    ext:name ?mediaObjectLicenseName ;
+    ext:isBasedOn ?originalMediaObjectLicense .
 
   ?associatedMediaId a schema:ImageObject ;
-    ext:license ?imageLicense ;
+    ext:license ?mediaObjectLicense ;
     ext:contentUrl ?contentUrl ;
     ext:thumbnailUrl ?contentUrl . # Missing in the source data
 }
@@ -115,8 +115,8 @@ WHERE {
   ?cho sdo:image ?image .
   ?image a sdo:ImageObject ;
     sdo:contentUrl ?contentUrl ;
-    sdo:license ?originalImageLicense .
+    sdo:license ?originalMediaObjectLicense .
   BIND(IRI(CONCAT("https://example.org/media-objects/", MD5(STR(?contentUrl)))) AS ?associatedMediaId)
-  BIND(IRI(CONCAT("https://example.org/licenses/", MD5(STR(?originalImageLicense)))) AS ?imageLicense)
-  BIND("Public Domain Mark 1.0 Universeel"@nl AS ?imageLicenseName)
+  BIND(IRI(CONCAT("https://example.org/licenses/", MD5(STR(?originalMediaObjectLicense)))) AS ?mediaObjectLicense)
+  BIND("Public Domain Mark 1.0 Universeel"@nl AS ?mediaObjectLicenseName)
 }
