@@ -111,7 +111,7 @@ WHERE {
     ?cho schema:about ?subject .
     ?subject schema:name ?originalSubjectName
     BIND(STRLANG(?originalSubjectName, "nl") AS ?subjectName) # Missing in the source data
-    BIND(IRI(CONCAT("https://example.org/materials/", MD5(STR(?subjectName)))) AS ?subjectId)
+    BIND(IRI(CONCAT("https://example.org/subjects/", MD5(STR(?subjectName)))) AS ?subjectId)
   }
 
   # No `schema:genre`: not in the source data
