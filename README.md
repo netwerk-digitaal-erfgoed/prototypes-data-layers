@@ -60,3 +60,5 @@ Use the Valeros API:
     curl http://localhost:3000/v1/heritage-objects/page/1?size=10&q=nederland
 
     curl http://localhost:3000/v1/heritage-objects/page/1?size=10&q=onderwijs&filter=contentLocation%3ABerlijn
+
+    curl http://localhost:3000/v1/heritage-objects/page/1?size=10&q=instrument&filter=contentLocation%3ANederland&filter=genre%3Anatuurkunde

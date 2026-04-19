@@ -123,6 +123,8 @@ const heritageObjectJsonLdSchema = z
     "ext:materialName": valueSchemaMultiple.optional(),
     "ext:publisher": idSchemaOne,
     "ext:publisherName": valueSchemaOne,
+    "ext:subject": idSchemaMultiple.optional(),
+    "ext:subjectName": valueSchemaMultiple.optional(),
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
@@ -147,13 +149,15 @@ const heritageObjectJsonLdSchema = z
     material_id: data["ext:material"]?.map((id) => createIdFrom(id)),
     publisher: data["ext:publisherName"],
     publisher_id: createIdFrom(data["ext:publisher"]),
+    subject: data["ext:subjectName"],
+    subject_id: data["ext:subject"]?.map((id) => createIdFrom(id)),
     is_based_on: {
       id: data["@id"],
       type: "CreativeWork",
     },
   }));
 
-const licensesJsonLdSchema = z
+const licenseJsonLdSchema = z
   .object({
     "@id": z.string(),
     "@type": z.literal("ext:License"),
@@ -216,7 +220,7 @@ const mediaObjectJsonLdSchema = z
     return mediaObject;
   });
 
-const publishersJsonLdSchema = z
+const publisherJsonLdSchema = z
   .object({
     "@id": z.string(),
     "@type": z.literal("ext:Organization"),
@@ -225,6 +229,19 @@ const publishersJsonLdSchema = z
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
     type: "Organization",
+    name: data["ext:name"]?.join("; "), // Merge into one string
+  }));
+
+const subjectJsonLdSchema = z
+  .object({
+    "@id": z.string(),
+    "@type": z.literal("ext:Subject"),
+    "ext:name": valueSchemaMultiple,
+  })
+  .transform((data) => ({
+    id: createIdFrom(data["@id"]),
+    // TBD: a subject can also refer to a person or a creative work, not just a term
+    type: "DefinedTerm",
     name: data["ext:name"]?.join("; "), // Merge into one string
   }));
 
@@ -308,7 +325,7 @@ export async function prepare(input: PrepareInput) {
     },
     {
       name: "01.licenses.jsonl",
-      schema: licensesJsonLdSchema,
+      schema: licenseJsonLdSchema,
     },
     {
       name: "01.materials.jsonl",
@@ -320,7 +337,11 @@ export async function prepare(input: PrepareInput) {
     },
     {
       name: "01.publishers.jsonl",
-      schema: publishersJsonLdSchema,
+      schema: publisherJsonLdSchema,
+    },
+    {
+      name: "01.subjects.jsonl",
+      schema: subjectJsonLdSchema,
     },
   ];
 

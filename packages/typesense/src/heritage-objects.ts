@@ -11,6 +11,7 @@ const includeFields = [
   "$licenses(*)",
   "$datasets(*)",
   "$publishers(*)",
+  "$subjects(*)",
 ];
 
 const excludeFields = [
@@ -31,6 +32,8 @@ const excludeFields = [
   "dataset_id",
   "publisher",
   "publisher_id",
+  "subject",
+  "subject_id",
 ];
 
 const searchInputSchema = z.object({
@@ -90,6 +93,7 @@ const searchResultSchema = z.object({
         creators: resourceHit.optional(),
         genres: resourceHit.optional(),
         materials: resourceHit.optional(),
+        subjects: resourceHit.optional(),
         publishers: z.object({
           id: z.string(),
           name: z.string(),
@@ -149,6 +153,7 @@ export async function search(input: SearchInput): Promise<SearchResult> {
       "additional_type",
       "genre",
       "material",
+      "subject",
     ],
     filter_by: opts.filter !== undefined ? opts.filter : "",
     // @ts-expect-error - Typesense lib type struggle
@@ -164,6 +169,7 @@ export async function search(input: SearchInput): Promise<SearchResult> {
       "license",
       "material",
       "publisher",
+      "subject",
     ],
   });
 

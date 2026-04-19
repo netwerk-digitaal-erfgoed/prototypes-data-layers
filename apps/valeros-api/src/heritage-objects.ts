@@ -16,6 +16,7 @@ const facets = new Map([
   ["license", "license"],
   ["material", "material"],
   ["publisher", "publisher"],
+  ["subject", "subject"],
 ]);
 
 function buildFilter(filters: string[]) {
@@ -229,6 +230,12 @@ function buildPagedCollectionResponse(
         id: `${baseUri}/terms/${material.id}`,
         type: material.type,
         name: material.name,
+      })),
+      about: hit.document.subjects?.map((subject) => ({
+        // TBD: a subject can also refer to a person or a creative work, not just a term
+        id: `${baseUri}/terms/${subject.id}`,
+        type: subject.type,
+        name: subject.name,
       })),
       associatedMedia: hit.document.media_objects?.map((mediaObject) => ({
         id: `${baseUri}/media-objects/${mediaObject.id}`,

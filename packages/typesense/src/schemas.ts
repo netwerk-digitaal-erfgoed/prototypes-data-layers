@@ -108,6 +108,8 @@ export const heritageObjectsSchema = collection({
     { name: "name", type: "string" },
     { name: "publisher", type: "string", facet: true },
     { name: "publisher_id", type: "string", reference: "publishers.id" },
+    { name: "subject", type: "string[]", optional: true, facet: true },
+    { name: "subject_id", type: "string[]", optional: true, reference: "subjects.id" },
   ],
 });
 
@@ -138,6 +140,8 @@ export type HeritageObject = {
   name: string;
   publisher: string;
   publisher_id: string;
+  subject?: string[];
+  subject_id?: string[];
 };
 
 export const licensesSchema = collection({
@@ -212,6 +216,20 @@ export type Publisher = {
   name: string;
 };
 
+export const subjectsSchema = collection({
+  name: "subjects",
+  fields: [
+    { name: "type", type: "string" },
+    { name: "name", type: "string" },
+  ],
+});
+
+export type Subject = {
+  id: string;
+  type: string;
+  name: string;
+};
+
 // Register the collections globally for type safety
 declare module "typesense-ts" {
   interface Collections {
@@ -225,5 +243,6 @@ declare module "typesense-ts" {
     materials: typeof materialsSchema.schema;
     mediaObjects: typeof mediaObjectsSchema.schema;
     publishers: typeof publishersSchema.schema;
+    subjects: typeof subjectsSchema.schema;
   }
 }

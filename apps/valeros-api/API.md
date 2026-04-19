@@ -318,6 +318,13 @@ Design decisions:
       "name": "Physisch Laboratorium"
     }
   ],
+  "about": [
+    {
+      "id": "https://example.org/v1/terms/{id}",
+      "type": "DefinedTerm",
+      "name": "maan"
+    }
+  ],
   "contentLocation": [
     {
       "id": "https://example.org/v1/places/{id}",
@@ -560,6 +567,9 @@ Design decisions:
 ```
 
 ### Get the JSON-LD context
+
+> [!WARNING]
+> This needs work.
 
 #### Request
 
