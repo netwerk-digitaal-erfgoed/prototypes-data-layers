@@ -17,8 +17,6 @@ CONSTRUCT {
     ext:dateCreated ?dateCreated ;
     ext:creator ?creatorId ;
     ext:creatorName ?creatorName ;
-    ext:genre ?genreId ;
-    ext:genreName ?genreName ;
     ext:material ?materialId ;
     ext:materialName ?materialName ;
     ext:additionalType ?additionalTypeId ;
@@ -41,9 +39,6 @@ CONSTRUCT {
 
   ?creatorId a ext:Creator ;
     ext:name ?creatorName .
-
-  ?genreId a ext:Genre ;
-    ext:name ?genreName .
 
   ?materialId a ext:Material ;
     ext:name ?materialName .
@@ -73,7 +68,8 @@ WHERE {
 
   ?cho a ?choType .
 
-  ?cho schema:name ?name . # No language tag
+  ?cho schema:name ?originalName
+  BIND(STRLANG(?originalName, "nl") AS ?name) # Missing in the source data
 
   # The dataset does not have a `schema:isPartOf` property for the dataset
   BIND(<https://n2t.net/ark:/61567/dataset> AS ?originalDataset)
@@ -89,18 +85,21 @@ WHERE {
   FILTER(LANG(?publisherName) = "nl")
   BIND(IRI(CONCAT("https://example.org/publishers/", MD5(STR(?originalPublisher)))) AS ?publisher)
 
-  ?originalDataset schema:license ?originalDatasetLicense .
+  ?originalDataset schema:license ?originalDatasetLicenseAsStr .
+  BIND(IRI(STR(?originalDatasetLicenseAsStr)) AS ?originalDatasetLicense)
   BIND(IRI(CONCAT("https://example.org/licenses/", MD5(STR(?originalDatasetLicense)))) AS ?datasetLicense)
   BIND("Naamsvermelding 4.0 Internationaal"@nl AS ?datasetLicenseName)
 
   # The dataset first refers to a schema:Role, then to a person,
   # but this is not according to SCHEMA-AP-NDE
   ?cho schema:creator/schema:creator ?creator .
-  ?creator schema:name ?creatorName . # No language tag
+  ?creator schema:name ?originalCreatorName
+  BIND(STRLANG(?originalCreatorName, "nl") AS ?creatorName) # Missing in the source data
   BIND(IRI(CONCAT("https://example.org/creators/", MD5(STR(?creatorName)))) AS ?creatorId)
 
   OPTIONAL {
-    ?cho schema:description ?description # No language tag
+    ?cho schema:description ?originalDescription
+    BIND(STRLANG(?originalDescription, "nl") AS ?description) # Missing in the source data
   }
 
   OPTIONAL {
@@ -110,31 +109,37 @@ WHERE {
 
   OPTIONAL {
     ?cho schema:about ?subject .
-    ?subject schema:name ?subjectName . # No language tag
+    ?subject schema:name ?originalSubjectName
+    BIND(STRLANG(?originalSubjectName, "nl") AS ?subjectName) # Missing in the source data
     BIND(IRI(CONCAT("https://example.org/materials/", MD5(STR(?subjectName)))) AS ?subjectId)
   }
 
+  # No `schema:genre`: not in the source data
+
   OPTIONAL {
     ?cho schema:material ?material .
-    ?material schema:name ?materialName . # No language tag
+    ?material schema:name ?originalMaterialName
+    BIND(STRLANG(?originalMaterialName, "nl") AS ?materialName) # Missing in the source data
     BIND(IRI(CONCAT("https://example.org/materials/", MD5(STR(?materialName)))) AS ?materialId)
   }
 
   OPTIONAL {
     ?cho schema:additionalType ?additionalType .
-    ?additionalType schema:name ?additionalTypeName . # No language tag
+    ?additionalType schema:name ?originalAdditionalTypeName
+    BIND(STRLANG(?originalAdditionalTypeName, "nl") AS ?additionalTypeName) # Missing in the source data
     BIND(IRI(CONCAT("https://example.org/additional-types/", MD5(STR(?additionalTypeName)))) AS ?additionalTypeId)
   }
 
   ?cho schema:associatedMedia ?associatedMedia .
   ?associatedMedia a ?associatedMediaType ;
-    schema:contentUrl ?contentUrlAsString ;
-    schema:thumbnailUrl ?thumbnailUrlAsString ;
-    schema:license ?originalMediaObjectLicense .
+    schema:contentUrl ?originalContentUrl ;
+    schema:thumbnailUrl ?originalThumbnailUrl ;
+    schema:license ?originalMediaObjectLicenseAsStr .
 
-  BIND(IRI(STR(?contentUrlAsString)) AS ?contentUrl)
-  BIND(IRI(STR(?thumbnailUrlAsString)) AS ?thumbnailUrl)
-  BIND(IRI(CONCAT("https://example.org/media-objects/", MD5(STR(?contentUrl)))) AS ?associatedMediaId)
+  BIND(IRI(STR(?originalContentUrl)) AS ?contentUrl)
+  BIND(IRI(STR(?originalThumbnailUrl)) AS ?thumbnailUrl)
+  BIND(IRI(STR(?originalMediaObjectLicenseAsStr)) AS ?originalMediaObjectLicense)
+  BIND(IRI(CONCAT("https://example.org/media-objects/", MD5(STR(?originalContentUrl)))) AS ?associatedMediaId)
   BIND(IRI(CONCAT("https://example.org/licenses/", MD5(STR(?originalMediaObjectLicense)))) AS ?mediaObjectLicense)
   BIND("Naamsvermelding-GelijkDelen 4.0 Internationaal"@nl AS ?mediaObjectLicenseName)
 
