@@ -25,6 +25,8 @@ CONSTRUCT {
     ext:additionalTypeName ?additionalTypeName ;
     ext:contentLocation ?contentLocationId ;
     ext:contentLocationName ?contentLocationName ;
+    ext:subject ?subjectId ;
+    ext:subjectName ?subjectName ;
     ext:associatedMedia ?associatedMediaId .
 
   ?dataset a ext:Dataset ;
@@ -53,6 +55,9 @@ CONSTRUCT {
 
   ?contentLocationId a ext:ContentLocation ;
     ext:name ?contentLocationName .
+
+  ?subjectId a ext:Subject ;
+    ext:name ?subjectName .
 
   ?associatedMediaId a ?associatedMediaType ;
     ext:license ?mediaObjectLicense ;
@@ -117,6 +122,12 @@ WHERE {
     ?cho schema:contentLocation ?contentLocation .
     ?contentLocation schema:name ?contentLocationName .
     BIND(IRI(CONCAT("https://example.org/places/", MD5(STR(?contentLocationName)))) AS ?contentLocationId)
+  }
+
+  OPTIONAL {
+    ?cho schema:about ?subject .
+    ?subject schema:name ?subjectName
+    BIND(IRI(CONCAT("https://example.org/subjects/", MD5(STR(?subjectName)))) AS ?subjectId)
   }
 
   ?cho schema:associatedMedia ?associatedMedia .

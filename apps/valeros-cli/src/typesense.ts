@@ -11,6 +11,7 @@ import {
   materialsSchema,
   mediaObjectsSchema,
   publishersSchema,
+  subjectsSchema,
 } from "@repo/typesense/schemas";
 
 setConfiguration({
@@ -30,6 +31,7 @@ export const collectionSchemas = [
   materialsSchema,
   mediaObjectsSchema,
   publishersSchema,
+  subjectsSchema,
 ];
 
 export type CollectionSchema = (typeof collectionSchemas)[number];

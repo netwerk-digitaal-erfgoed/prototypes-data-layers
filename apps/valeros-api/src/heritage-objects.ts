@@ -16,6 +16,7 @@ const facets = new Map([
   ["license", "license"],
   ["material", "material"],
   ["publisher", "publisher"],
+  ["subject", "subject"],
 ]);
 
 function buildFilter(filters: string[]) {
@@ -73,7 +74,7 @@ function getNavPages(baseUri: string, queryString: string, searchResult: SearchR
   const navPages = new Map<string, string>();
 
   const currentPage = searchResult.page;
-  const maxPage = Math.ceil(searchResult.found / searchResult.request_params.per_page);
+  const lastPage = Math.ceil(searchResult.found / searchResult.request_params.per_page);
   const nextPage = currentPage + 1;
   const prevPage = currentPage - 1;
 
@@ -81,10 +82,10 @@ function getNavPages(baseUri: string, queryString: string, searchResult: SearchR
 
   if (searchResult.found > 0) {
     navPages.set("first", `${baseUri}/heritage-objects/page/1${queryString}`);
-    navPages.set("last", `${baseUri}/heritage-objects/page/${maxPage}${queryString}`);
+    navPages.set("last", `${baseUri}/heritage-objects/page/${lastPage}${queryString}`);
   }
 
-  if (nextPage <= maxPage) {
+  if (nextPage <= lastPage) {
     navPages.set("next", `${baseUri}/heritage-objects/page/${nextPage}${queryString}`);
   }
 
@@ -229,6 +230,12 @@ function buildPagedCollectionResponse(
         id: `${baseUri}/terms/${material.id}`,
         type: material.type,
         name: material.name,
+      })),
+      about: hit.document.subjects?.map((subject) => ({
+        // TBD: a subject can also refer to a person or a creative work, not just a term
+        id: `${baseUri}/terms/${subject.id}`,
+        type: subject.type,
+        name: subject.name,
       })),
       associatedMedia: hit.document.media_objects?.map((mediaObject) => ({
         id: `${baseUri}/media-objects/${mediaObject.id}`,

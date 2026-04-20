@@ -1,0 +1,152 @@
+# Simple query for preparing the data for ingestion into the search index.
+# See also: https://datasetregister.netwerkdigitaalerfgoed.nl/en/datasets/https://n2t.net/ark:/61567/dataset
+
+PREFIX ext: <https://example.org/>
+PREFIX schema: <https://schema.org/>
+
+CONSTRUCT {
+  ?cho a ?choType ;
+    ext:name ?name ;
+    ext:dataset ?dataset ;
+    ext:datasetName ?datasetName ;
+    ext:publisher ?publisher ;
+    ext:publisherName ?publisherName ;
+    ext:license ?datasetLicense ;
+    ext:licenseName ?datasetLicenseName ;
+    ext:description ?description ;
+    ext:dateCreated ?dateCreated ;
+    ext:creator ?creatorId ;
+    ext:creatorName ?creatorName ;
+    ext:material ?materialId ;
+    ext:materialName ?materialName ;
+    ext:additionalType ?additionalTypeId ;
+    ext:additionalTypeName ?additionalTypeName ;
+    ext:subject ?subjectId ;
+    ext:subjectName ?subjectName ;
+    ext:associatedMedia ?associatedMediaId .
+
+  ?dataset a ext:Dataset ;
+    ext:name ?datasetName ;
+    ext:license ?datasetLicense ;
+    ext:publisher ?publisher .
+
+  ?datasetLicense a ext:License ;
+    ext:name ?datasetLicenseName ;
+    ext:isBasedOn ?originalDatasetLicense .
+
+  ?publisher a ext:Organization ;
+    ext:name ?publisherName .
+
+  ?creatorId a ext:Creator ;
+    ext:name ?creatorName .
+
+  ?materialId a ext:Material ;
+    ext:name ?materialName .
+
+  ?additionalTypeId a ext:AdditionalType ;
+    ext:name ?additionalTypeName .
+
+  ?subjectId a ext:Subject ;
+    ext:name ?subjectName .
+
+  ?mediaObjectLicense a ext:License ;
+    ext:name ?mediaObjectLicenseName ;
+    ext:isBasedOn ?originalMediaObjectLicense .
+
+  ?associatedMediaId a ?associatedMediaType ;
+    ext:license ?mediaObjectLicense ;
+    ext:contentUrl ?contentUrl ;
+    ext:thumbnailUrl ?thumbnailUrl ;
+    ext:isBasedOn ?isBasedOn .
+
+  ?isBasedOn a ext:MediaObject ;
+    ext:encodingFormat ?encodingFormat .
+}
+WHERE {
+  #Examples:
+  #BIND(<https://n2t.net/ark:/61567/f9a62fb0322d4b679f32a2aa1e277f17> AS ?cho)
+
+  ?cho a ?choType .
+
+  ?cho schema:name ?originalName
+  BIND(STRLANG(?originalName, "nl") AS ?name) # Missing in the source data
+
+  # The dataset does not have a `schema:isPartOf` property for the dataset
+  BIND(<https://n2t.net/ark:/61567/dataset> AS ?originalDataset)
+
+  # Normally this info comes from the NDE Dataset Register
+  ?originalDataset a schema:Dataset .
+  ?originalDataset schema:name ?datasetName
+  FILTER(LANG(?datasetName) = "nl")
+  BIND(IRI(CONCAT("https://example.org/datasets/", MD5(STR(?originalDataset)))) AS ?dataset)
+
+  ?originalDataset schema:publisher ?originalPublisher .
+  ?originalPublisher schema:name ?publisherName .
+  FILTER(LANG(?publisherName) = "nl")
+  BIND(IRI(CONCAT("https://example.org/publishers/", MD5(STR(?originalPublisher)))) AS ?publisher)
+
+  ?originalDataset schema:license ?originalDatasetLicenseAsStr .
+  BIND(IRI(STR(?originalDatasetLicenseAsStr)) AS ?originalDatasetLicense)
+  BIND(IRI(CONCAT("https://example.org/licenses/", MD5(STR(?originalDatasetLicense)))) AS ?datasetLicense)
+  BIND("Naamsvermelding 4.0 Internationaal"@nl AS ?datasetLicenseName)
+
+  # The dataset first refers to a schema:Role, then to a person,
+  # but this is not according to SCHEMA-AP-NDE
+  ?cho schema:creator/schema:creator ?creator .
+  ?creator schema:name ?originalCreatorName
+  BIND(STRLANG(?originalCreatorName, "nl") AS ?creatorName) # Missing in the source data
+  BIND(IRI(CONCAT("https://example.org/creators/", MD5(STR(?creatorName)))) AS ?creatorId)
+
+  OPTIONAL {
+    ?cho schema:description ?originalDescription
+    BIND(STRLANG(?originalDescription, "nl") AS ?description) # Missing in the source data
+  }
+
+  OPTIONAL {
+    ?cho schema:dateCreated ?originalDateCreated
+    BIND(STR(?originalDateCreated) AS ?dateCreated) # Remove XSD type, e.g. `gYear`
+  }
+
+  OPTIONAL {
+    ?cho schema:about ?subject .
+    ?subject schema:name ?originalSubjectName
+    BIND(STRLANG(?originalSubjectName, "nl") AS ?subjectName) # Missing in the source data
+    BIND(IRI(CONCAT("https://example.org/subjects/", MD5(STR(?subjectName)))) AS ?subjectId)
+  }
+
+  # No `schema:genre`: not in the source data
+
+  OPTIONAL {
+    ?cho schema:material ?material .
+    ?material schema:name ?originalMaterialName
+    BIND(STRLANG(?originalMaterialName, "nl") AS ?materialName) # Missing in the source data
+    BIND(IRI(CONCAT("https://example.org/materials/", MD5(STR(?materialName)))) AS ?materialId)
+  }
+
+  OPTIONAL {
+    ?cho schema:additionalType ?additionalType .
+    ?additionalType schema:name ?originalAdditionalTypeName
+    BIND(STRLANG(?originalAdditionalTypeName, "nl") AS ?additionalTypeName) # Missing in the source data
+    BIND(IRI(CONCAT("https://example.org/additional-types/", MD5(STR(?additionalTypeName)))) AS ?additionalTypeId)
+  }
+
+  ?cho schema:associatedMedia ?associatedMedia .
+  ?associatedMedia a ?associatedMediaType ;
+    schema:contentUrl ?originalContentUrl ;
+    schema:thumbnailUrl ?originalThumbnailUrl ;
+    schema:license ?originalMediaObjectLicenseAsStr .
+
+  BIND(IRI(STR(?originalContentUrl)) AS ?contentUrl)
+  BIND(IRI(STR(?originalThumbnailUrl)) AS ?thumbnailUrl)
+  BIND(IRI(STR(?originalMediaObjectLicenseAsStr)) AS ?originalMediaObjectLicense)
+  BIND(IRI(CONCAT("https://example.org/media-objects/", MD5(STR(?originalContentUrl)))) AS ?associatedMediaId)
+  BIND(IRI(CONCAT("https://example.org/licenses/", MD5(STR(?originalMediaObjectLicense)))) AS ?mediaObjectLicense)
+  BIND("Naamsvermelding-GelijkDelen 4.0 Internationaal"@nl AS ?mediaObjectLicenseName)
+
+  # IIIF support is optional
+  OPTIONAL {
+    ?associatedMedia schema:isBasedOn ?isBasedOn .
+    ?isBasedOn schema:encodingFormat ?encodingFormat
+    FILTER(?encodingFormat = "application/ld+json;profile='http://iiif.io/api/image/3/context.json'")
+  }
+}
