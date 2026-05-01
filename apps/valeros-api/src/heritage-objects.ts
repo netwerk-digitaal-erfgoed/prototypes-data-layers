@@ -1,5 +1,5 @@
 import { sValidator } from "@hono/standard-validator";
-import { search, SearchResult } from "@repo/typesense/heritage-objects";
+import { Document, retrieve, search, SearchResult } from "@repo/typesense/heritage-objects";
 import { Context, Hono } from "hono";
 import { z } from "zod";
 import { Env } from "./env.js";
@@ -186,6 +186,82 @@ app.get(
   },
 );
 
+function buildDocumentResponse(c: Context<Env>, document: Document) {
+  const baseUri = new URL(c.req.url).origin + "/v1";
+
+  const response = {
+    id: `${baseUri}/heritage-objects/${document.id}`,
+    type: document.type,
+    name: document.name,
+    description: document.description,
+    dateCreated: document.date_created,
+    additionalType: document.additional_types?.map((type) => ({
+      id: `${baseUri}/terms/${type.id}`,
+      type: type.type,
+      name: type.name,
+    })),
+    creator: document.creators?.map((creator) => ({
+      id: `${baseUri}/persons/${creator.id}`,
+      type: creator.type,
+      name: creator.name,
+    })),
+    genre: document.genres?.map((genre) => ({
+      id: `${baseUri}/terms/${genre.id}`,
+      type: genre.type,
+      name: genre.name,
+    })),
+    contentLocation: document.content_locations?.map((location) => ({
+      id: `${baseUri}/places/${location.id}`,
+      type: location.type,
+      name: location.name,
+    })),
+    material: document.materials?.map((material) => ({
+      id: `${baseUri}/terms/${material.id}`,
+      type: material.type,
+      name: material.name,
+    })),
+    about: document.subjects?.map((subject) => ({
+      // TBD: a subject can also refer to a person or a creative work, not just a term
+      id: `${baseUri}/terms/${subject.id}`,
+      type: subject.type,
+      name: subject.name,
+    })),
+    associatedMedia: document.media_objects?.map((mediaObject) => ({
+      id: `${baseUri}/media-objects/${mediaObject.id}`,
+      type: mediaObject.type,
+      contentUrl: mediaObject.content_url,
+      thumbnailUrl: mediaObject.thumbnail_url,
+      isBasedOn: {
+        id: mediaObject.is_based_on?.id,
+        encodingFormat: mediaObject.is_based_on?.encoding_format,
+      },
+      license: {
+        id: `${baseUri}/licenses/${mediaObject.licenses.id}`,
+        name: mediaObject.licenses.name,
+        isBasedOn: mediaObject.licenses.is_based_on,
+      },
+    })),
+    isPartOf: {
+      id: `${baseUri}/datasets/${document.datasets.id}`,
+      type: document.datasets.type,
+      name: document.datasets.name,
+      publisher: {
+        id: `${baseUri}/organizations/${document.publishers.id}`,
+        type: document.publishers.type,
+        name: document.publishers.name,
+      },
+      license: {
+        id: `${baseUri}/licenses/${document.licenses.id}`,
+        type: document.licenses.type,
+        name: document.licenses.name,
+      },
+    },
+    isBasedOn: document.is_based_on,
+  };
+
+  return response;
+}
+
 function buildPagedCollectionResponse(
   c: Context<Env>,
   query: PagedCollectionQuery,
@@ -200,75 +276,7 @@ function buildPagedCollectionResponse(
     type: "OrderedCollectionPage",
     next: navPages.get("next"),
     prev: navPages.get("prev"),
-    orderedItems: searchResult.hits.map((hit) => ({
-      id: `${baseUri}/heritage-objects/${hit.document.id}`,
-      type: hit.document.type,
-      name: hit.document.name,
-      description: hit.document.description,
-      dateCreated: hit.document.date_created,
-      additionalType: hit.document.additional_types?.map((type) => ({
-        id: `${baseUri}/terms/${type.id}`,
-        type: type.type,
-        name: type.name,
-      })),
-      creator: hit.document.creators?.map((creator) => ({
-        id: `${baseUri}/persons/${creator.id}`,
-        type: creator.type,
-        name: creator.name,
-      })),
-      genre: hit.document.genres?.map((genre) => ({
-        id: `${baseUri}/terms/${genre.id}`,
-        type: genre.type,
-        name: genre.name,
-      })),
-      contentLocation: hit.document.content_locations?.map((location) => ({
-        id: `${baseUri}/places/${location.id}`,
-        type: location.type,
-        name: location.name,
-      })),
-      material: hit.document.materials?.map((material) => ({
-        id: `${baseUri}/terms/${material.id}`,
-        type: material.type,
-        name: material.name,
-      })),
-      about: hit.document.subjects?.map((subject) => ({
-        // TBD: a subject can also refer to a person or a creative work, not just a term
-        id: `${baseUri}/terms/${subject.id}`,
-        type: subject.type,
-        name: subject.name,
-      })),
-      associatedMedia: hit.document.media_objects?.map((mediaObject) => ({
-        id: `${baseUri}/media-objects/${mediaObject.id}`,
-        type: mediaObject.type,
-        contentUrl: mediaObject.content_url,
-        thumbnailUrl: mediaObject.thumbnail_url,
-        isBasedOn: {
-          id: mediaObject.is_based_on?.id,
-          encodingFormat: mediaObject.is_based_on?.encoding_format,
-        },
-        license: {
-          id: `${baseUri}/licenses/${mediaObject.licenses.id}`,
-          name: mediaObject.licenses.name,
-          isBasedOn: mediaObject.licenses.is_based_on,
-        },
-      })),
-      isPartOf: {
-        id: `${baseUri}/datasets/${hit.document.datasets.id}`,
-        type: hit.document.datasets.type,
-        name: hit.document.datasets.name,
-        publisher: {
-          id: `${baseUri}/organizations/${hit.document.publishers.id}`,
-          type: hit.document.publishers.type,
-          name: hit.document.publishers.name,
-        },
-        license: {
-          id: `${baseUri}/licenses/${hit.document.licenses.id}`,
-          type: hit.document.licenses.type,
-          name: hit.document.licenses.name,
-        },
-      },
-      isBasedOn: hit.document.is_based_on,
-    })),
+    orderedItems: searchResult.hits.map((hit) => buildDocumentResponse(c, hit.document)),
     partOf: {
       id: `${baseUri}/heritage-objects${queryString}`,
       type: "OrderedCollection",
@@ -289,5 +297,26 @@ function buildPagedCollectionResponse(
 
   return response;
 }
+
+const singleResourceParamsSchema = z.object({
+  id: z.string(),
+});
+
+app.get("/v1/heritage-objects/:id", sValidator("param", singleResourceParamsSchema), async (c) => {
+  const params = c.req.valid("param");
+
+  const document = await retrieve({
+    client: c.get("typesenseClient"),
+    id: params.id,
+  });
+
+  if (document === undefined) {
+    return c.notFound();
+  }
+
+  const response = buildDocumentResponse(c, document);
+
+  return c.json(response);
+});
 
 export default app;

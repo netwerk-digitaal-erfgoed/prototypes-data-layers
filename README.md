@@ -41,14 +41,30 @@ Import data into the search index with the Valeros CLI:
 
 Use the Valeros API:
 
+Check the health of the API:
+
     curl -i http://localhost:3000/health
+
+Get the heritage objects collection:
 
     curl http://localhost:3000/v1/heritage-objects
 
+Get the heritage objects on the first page of the collection:
+
     curl http://localhost:3000/v1/heritage-objects/page/1
+
+Find the heritage objects that match query `nederland`:
 
     curl http://localhost:3000/v1/heritage-objects/page/1?size=10&q=nederland
 
+Find the heritage objects that match query `onderwijs` and that are about location `Berlijn`:
+
     curl http://localhost:3000/v1/heritage-objects/page/1?size=10&q=onderwijs&filter=contentLocation%3ABerlijn
 
+Find the heritage objects that match query `instrument`, that are about location `Nederland` and that are of genre `natuurkunde`:
+
     curl http://localhost:3000/v1/heritage-objects/page/1?size=10&q=instrument&filter=contentLocation%3ANederland&filter=genre%3Anatuurkunde
+
+Get a specific heritage object:
+
+    curl http://localhost:3000/v1/heritage-objects/f3cb201d0d6068c4c959f352b49a7587
