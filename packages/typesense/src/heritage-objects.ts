@@ -1,4 +1,4 @@
-import { Client } from "typesense";
+import { Client, Errors } from "typesense";
 import { z } from "zod";
 
 const includeFields = [
@@ -36,18 +36,6 @@ const excludeFields = [
   "subject_id",
 ];
 
-const searchInputSchema = z.object({
-  client: z.instanceof(Client),
-  page: z.number().default(1),
-  size: z.number().default(10),
-  sort: z.string().optional(),
-  q: z.string(),
-  // E.g. `creator:=John && material:=paper`
-  filter: z.string().optional(),
-});
-
-type SearchInput = z.input<typeof searchInputSchema>;
-
 const resourceHit = z.array(
   z.object({
     id: z.string(),
@@ -62,6 +50,55 @@ const license = z.object({
   type: z.string(),
   is_based_on: z.string(),
 });
+
+const documentSchema = z.object({
+  id: z.string(),
+  type: z.array(z.string()),
+  name: z.string(),
+  description: z.string().optional(),
+  date_created: z.string().optional(),
+  additional_types: resourceHit.optional(),
+  content_locations: resourceHit.optional(),
+  creators: resourceHit.optional(),
+  genres: resourceHit.optional(),
+  materials: resourceHit.optional(),
+  subjects: resourceHit.optional(),
+  publishers: z.object({
+    id: z.string(),
+    name: z.string(),
+    type: z.string(),
+  }),
+  datasets: z.object({
+    id: z.string(),
+    name: z.string(),
+    type: z.string(),
+  }),
+  licenses: license,
+  is_based_on: z.object({
+    id: z.string(),
+    type: z.string(),
+  }),
+  media_objects: z
+    .array(
+      z.object({
+        id: z.string(),
+        type: z.array(z.string()),
+        content_url: z.string(),
+        thumbnail_url: z.string(),
+        licenses: license,
+        is_based_on: z
+          .object({
+            id: z.string(),
+            type: z.string(),
+            encoding_format: z.string(),
+          })
+          .optional(),
+      }),
+    )
+    .optional(),
+});
+
+export type Document = z.output<typeof documentSchema>;
 
 const searchResultSchema = z.object({
   found: z.number(),
@@ -83,57 +120,24 @@ const searchResultSchema = z.object({
   ),
   hits: z.array(
     z.object({
-      document: z.object({
-        id: z.string(),
-        type: z.array(z.string()),
-        name: z.string(),
-        description: z.string().optional(),
-        date_created: z.string().optional(),
-        additional_types: resourceHit.optional(),
-        content_locations: resourceHit.optional(),
-        creators: resourceHit.optional(),
-        genres: resourceHit.optional(),
-        materials: resourceHit.optional(),
-        subjects: resourceHit.optional(),
-        publishers: z.object({
-          id: z.string(),
-          name: z.string(),
-          type: z.string(),
-        }),
-        datasets: z.object({
-          id: z.string(),
-          name: z.string(),
-          type: z.string(),
-        }),
-        licenses: license,
-        is_based_on: z.object({
-          id: z.string(),
-          type: z.string(),
-        }),
-        media_objects: z
-          .array(
-            z.object({
-              id: z.string(),
-              type: z.array(z.string()),
-              content_url: z.string(),
-              thumbnail_url: z.string(),
-              licenses: license,
-              is_based_on: z
-                .object({
-                  id: z.string(),
-                  type: z.string(),
-                  encoding_format: z.string(),
-                })
-                .optional(),
-            }),
-          )
-          .optional(),
-      }),
+      document: documentSchema,
     }),
   ),
 });
 
 export type SearchResult = z.output<typeof searchResultSchema>;
+
+const searchInputSchema = z.object({
+  client: z.instanceof(Client),
+  page: z.number().default(1),
+  size: z.number().default(10),
+  sort: z.string().optional(),
+  q: z.string(),
+  // E.g. `creator:=John && material:=paper`
+  filter: z.string().optional(),
+});
+
+type SearchInput = z.input<typeof searchInputSchema>;
 
 export async function search(input: SearchInput): Promise<SearchResult> {
   const opts = searchInputSchema.parse(input);
@@ -178,4 +182,30 @@ export async function search(input: SearchInput): Promise<SearchResult> {
   const result = searchResultSchema.parse(response);
 
   return result;
+}
+
+const retrieveInputSchema = z.object({
+  client: z.instanceof(Client),
+  id: z.string(),
+});
+
+type RetrieveInput = z.input<typeof retrieveInputSchema>;
+
+export async function retrieve(input: RetrieveInput): Promise<Document | undefined> {
+  const opts = retrieveInputSchema.parse(input);
+
+  try {
+    const response = await opts.client.collections("heritage_objects").documents(opts.id).retrieve({
+      include_fields: includeFields,
+      exclude_fields: excludeFields,
+    });
+
+    return documentSchema.parse(response);
+  } catch (err) {
+    if (err instanceof Errors.ObjectNotFound) {
+      return undefined;
+    }
+
+    throw err;
+  }
 }
