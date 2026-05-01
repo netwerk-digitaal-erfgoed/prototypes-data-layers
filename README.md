@@ -35,19 +35,9 @@ In another terminal, build the Valeros CLI:
 
     docker build -f apps/valeros-cli/Dockerfile -t valeros-cli .
 
-Run the Valeros CLI container:
-
-    docker run --network host -i --rm --env-file .env -t valeros-cli
-
 Import data into the search index with the Valeros CLI:
 
-    ./prepare.sh --output-file data/ingest.jsonld
-
-    ./valeros.mjs prepare --input-file data/ingest.jsonld --output-dir data/ingest
-
-    ./valeros.mjs ingest --input-dir data/ingest
-
-    exit
+    docker run --network host -i --rm --env-file .env -t valeros-cli ./import.sh
 
 Use the Valeros API:
 

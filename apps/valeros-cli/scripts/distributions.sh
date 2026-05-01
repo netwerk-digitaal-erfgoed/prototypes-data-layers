@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Define a list of distributions to prepare for ingestion into the search engine
+# The distributions to prepare for ingestion into the search index
 
 # Universiteitsmuseum Utrecht
 DISTRIBUTION1=(
