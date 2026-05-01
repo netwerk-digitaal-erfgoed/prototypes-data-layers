@@ -37,15 +37,15 @@ const excludeFields = [
 ];
 
 const searchInputSchema = z.object({
-  page: z.number(),
-  size: z.number(),
+  page: z.number().default(1),
+  size: z.number().default(10),
   sort: z.string().optional(),
   q: z.string(),
   // E.g. `creator:=John && material:=paper`
   filter: z.string().optional(),
 });
 
-type SearchInput = z.output<typeof searchInputSchema>;
+type SearchInput = z.input<typeof searchInputSchema>;
 
 const resourceHit = z.array(
   z.object({

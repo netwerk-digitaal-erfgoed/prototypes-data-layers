@@ -10,6 +10,7 @@ services:
 
   valeros-typesense:
     image: typesense/typesense:30.1
+    container_name: valeros-typesense
     restart: on-failure
     environment:
       TYPESENSE_API_KEY: ${TYPESENSE_API_KEY}
@@ -21,6 +22,7 @@ services:
 
   valeros-api:
     image: node:lts
+    container_name: valeros-api
     env_file: .env
     user: node
     volumes:
@@ -29,7 +31,6 @@ services:
       - 3000:3000
     working_dir: /app
     command: npx turbo run start --filter=@repo/valeros-api
-    network_mode: host
     depends_on:
       - valeros-typesense
 
