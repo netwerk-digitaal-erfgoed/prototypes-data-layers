@@ -36,7 +36,7 @@ const excludeFields = [
   "subject_id",
 ];
 
-const resourceHit = z.array(
+const termSchema = z.array(
   z.object({
     id: z.string(),
     name: z.string(),
@@ -44,7 +44,7 @@ const resourceHit = z.array(
   }),
 );
 
-const license = z.object({
+const licenseSchema = z.object({
   id: z.string(),
   name: z.string(),
   type: z.string(),
@@ -57,12 +57,12 @@ const documentSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   date_created: z.string().optional(),
-  additional_types: resourceHit.optional(),
-  content_locations: resourceHit.optional(),
-  creators: resourceHit.optional(),
-  genres: resourceHit.optional(),
-  materials: resourceHit.optional(),
-  subjects: resourceHit.optional(),
+  additional_types: termSchema.optional(),
+  content_locations: termSchema.optional(),
+  creators: termSchema.optional(),
+  genres: termSchema.optional(),
+  materials: termSchema.optional(),
+  subjects: termSchema.optional(),
   publishers: z.object({
     id: z.string(),
     name: z.string(),
@@ -73,7 +73,7 @@ const documentSchema = z.object({
     name: z.string(),
     type: z.string(),
   }),
-  licenses: license,
+  licenses: licenseSchema,
   is_based_on: z.object({
     id: z.string(),
     type: z.string(),
@@ -85,7 +85,7 @@ const documentSchema = z.object({
         type: z.array(z.string()),
         content_url: z.string(),
         thumbnail_url: z.string(),
-        licenses: license,
+        licenses: licenseSchema,
         is_based_on: z
           .object({
             id: z.string(),

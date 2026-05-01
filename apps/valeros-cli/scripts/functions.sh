@@ -4,24 +4,29 @@ fetch() {
   local url="$1"
   local outputFile="$2"
 
-  echo "Downloading, validating and converting '$url'"
+  echo "Downloading and converting '$url' to '$outputFile'"
+
+  local outputDirName=$(dirname "$outputFile")
+  mkdir -p $outputDirName
 
   # Strip everything from '?' onward. Example:
   # https://data.bibliotheken.nl/KB/Production/download.ttl.gz?graph=http%3A%2F%2Fdata.bibliotheken.nl%2Frise-alba
   local baseFileName=$(basename "${url%%\?*}")
+  local tempOutputFile="$outputDirName/$baseFileName"
 
-  wget -q $url -O "/tmp/$baseFileName"
+  # Download the distribution
+  wget -q $url -O "$tempOutputFile"
 
   # Test for gzip
-  if gzip -t "/tmp/$baseFileName" 2>/dev/null; then
-    gunzip -f "/tmp/$baseFileName"  # Removes the .gz suffix automatically
+  if gzip -t "$tempOutputFile" 2>/dev/null; then
+    gunzip -f "$tempOutputFile"  # Removes the .gz suffix automatically
     baseFileName="${baseFileName%.*}" # Remove the *last* dot‑extension, i.e. `.gz`
   fi
 
   local outputExtension="${outputFile##*.}" # E.g. `nq`
 
-  # Validate and convert the distribution
-  riot --merge --output $outputExtension "/tmp/$baseFileName" > "$outputFile"
+  # Convert the distribution
+  riot --merge --output $outputExtension "$outputDirName/$baseFileName" > "$outputFile"
 }
 
 map() {
@@ -48,16 +53,13 @@ prepare() {
   echo "Preparing data from '$url'"
 
   local outputDirName=$(dirname "$outputFile")
-
   mkdir -p $outputDirName
 
+  # Random file name, e.g. `ab12cd.nt`.
   # Discard quads, if any, by using N-Triples
-  local ntriplesFile="$outputFile.nt"
+  local ntriplesFile=$(mktemp "${outputDirName}/XXXXXX.nt")
 
-  # Optimization for testing: do not fetch again if the file already exists
-  if [[ ! -e "$ntriplesFile" ]]; then
-    fetch "$url" "$ntriplesFile"
-  fi
+  fetch "$url" "$ntriplesFile"
 
   map "$ntriplesFile" "$queryFile" "$outputFile"
 
@@ -75,10 +77,8 @@ createIngestFile() {
   local outputDir=$(dirname $mainOutputFile)
   mkdir -p $outputDir
 
-  # Make sure no files from a previous run exist
-  local dataDir="/tmp/prepare"
-  rm -rf $dataDir
-  mkdir -p $dataDir
+  local prepareDir="$outputDir/prepare"
+  mkdir -p $prepareDir
 
   # Convert each distribution to Turtle
   for distribution in "${DISTRIBUTIONS[@]}"; do
@@ -86,18 +86,21 @@ createIngestFile() {
     local url=${elements[0]}
     local queryFile=${elements[1]}
 
-    # Random file name, e.g. `20240415_112233_ab12cd.ttl`
-    local outputFile=$(mktemp "${dataDir}/$(date +%Y%m%d_%H%M%S)_XXXXXX.ttl")
+    # Random file name, e.g. `main_ab12cd.ttl`
+    local outputFile=$(mktemp "${prepareDir}/main_XXXXXX.ttl")
 
     prepare "$url" "$queryFile" "$outputFile"
   done
 
-  # Combine the different output files into one - fast, cheap
-  local turtleOutputFile="/tmp/main.ttl"
-  cat ${dataDir}/*.ttl > "${turtleOutputFile}"
+  # Combine the different `main_` output files into one - fast, cheap
+  local tempMainOutputFile="$prepareDir/main.ttl"
+  cat ${prepareDir}/main_*.ttl > "${tempMainOutputFile}"
 
   local outputExtension="${mainOutputFile##*.}" # E.g. `jsonld`
 
   # Convert Turtle to output format
-  riot --output $outputExtension "${turtleOutputFile}" > "${mainOutputFile}"
+  riot --output $outputExtension "${tempMainOutputFile}" > "${mainOutputFile}"
+
+  # Remove all temporary work files
+  rm -rf $prepareDir
 }

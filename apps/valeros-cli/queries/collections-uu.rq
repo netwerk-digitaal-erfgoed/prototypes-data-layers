@@ -87,6 +87,7 @@ WHERE {
   BIND(IRI(CONCAT("https://example.org/licenses/", MD5(STR(?originalDatasetLicense)))) AS ?datasetLicense)
   BIND("Gesloten licentie"@nl AS ?datasetLicenseName)
 
+  # Creator is a blank node, not a term IRI. Use the name instead for grouping
   ?cho schema:creator ?creator .
   ?creator schema:name ?creatorName .
   BIND(IRI(CONCAT("https://example.org/creators/", MD5(STR(?creatorName)))) AS ?creatorId)
@@ -100,30 +101,35 @@ WHERE {
     BIND(STR(?originalDateCreated) AS ?dateCreated)
   }
 
+  # Genre is a blank node, not a term IRI. Use the name instead for grouping
   OPTIONAL {
     ?cho schema:genre ?genre .
     ?genre schema:name ?genreName .
     BIND(IRI(CONCAT("https://example.org/genres/", MD5(STR(?genreName)))) AS ?genreId)
   }
 
+  # Material is a blank node, not a term IRI. Use the name instead for grouping
   OPTIONAL {
     ?cho schema:material ?material .
     ?material schema:name ?materialName .
     BIND(IRI(CONCAT("https://example.org/materials/", MD5(STR(?materialName)))) AS ?materialId)
   }
 
+  # Additional type is a blank node, not a term IRI. Use the name instead for grouping
   OPTIONAL {
     ?cho schema:additionalType ?additionalType .
     ?additionalType schema:name ?additionalTypeName .
     BIND(IRI(CONCAT("https://example.org/additional-types/", MD5(STR(?additionalTypeName)))) AS ?additionalTypeId)
   }
 
+  # Location is a blank node, not a term IRI. Use the name instead for grouping
   OPTIONAL {
     ?cho schema:contentLocation ?contentLocation .
     ?contentLocation schema:name ?contentLocationName .
     BIND(IRI(CONCAT("https://example.org/places/", MD5(STR(?contentLocationName)))) AS ?contentLocationId)
   }
 
+  # Subject is a blank node, not a term IRI. Use the name instead for grouping
   OPTIONAL {
     ?cho schema:about ?subject .
     ?subject schema:name ?subjectName

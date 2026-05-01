@@ -74,6 +74,7 @@ WHERE {
   ?cho sdo:name ?name
   FILTER(LANG(?name) = "nl")
 
+  # Literal reference to a creator, not a term IRI
   ?cho sdo:author ?creatorName
   FILTER(LANG(?creatorName) = "nl")
   BIND(IRI(CONCAT("https://example.org/creators/", MD5(STR(?creatorName)))) AS ?creatorId)
@@ -89,6 +90,7 @@ WHERE {
     FILTER(LANG(?dateCreated) = "")
   }
 
+  # Literal reference to a location, not a term IRI
   OPTIONAL {
     ?cho sdo:locationCreated ?locationCreated
     FILTER(LANG(?locationCreated) = "nl")
@@ -100,12 +102,14 @@ WHERE {
   #  FILTER(LANG(?temporalCoverage) = "nl")
   #}
 
+  # Literal reference to a genre, not a term IRI
   OPTIONAL {
     ?cho sdo:genre ?genreName
     FILTER(LANG(?genreName) = "nl")
     BIND(IRI(CONCAT("https://example.org/genres/", MD5(STR(?genreName)))) AS ?genreId)
   }
 
+  # Literal reference to a material, not a term IRI
   OPTIONAL {
     ?cho sdo:material ?materialName
     FILTER(isLiteral(?materialName) && LANG(?materialName) = "nl")

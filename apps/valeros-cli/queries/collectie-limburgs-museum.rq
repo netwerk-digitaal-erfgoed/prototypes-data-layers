@@ -92,6 +92,7 @@ WHERE {
 
   # The dataset first refers to a schema:Role, then to a person,
   # but this is not according to SCHEMA-AP-NDE
+  # Creator is a blank node, not a term IRI. Use the name instead for grouping
   ?cho schema:creator/schema:creator ?creator .
   ?creator schema:name ?originalCreatorName
   BIND(STRLANG(?originalCreatorName, "nl") AS ?creatorName) # Missing in the source data
@@ -111,7 +112,7 @@ WHERE {
     ?cho schema:about ?subject .
     ?subject schema:name ?originalSubjectName
     BIND(STRLANG(?originalSubjectName, "nl") AS ?subjectName) # Missing in the source data
-    BIND(IRI(CONCAT("https://example.org/subjects/", MD5(STR(?subjectName)))) AS ?subjectId)
+    BIND(IRI(CONCAT("https://example.org/subjects/", MD5(STR(?subject)))) AS ?subjectId)
   }
 
   # No `schema:genre`: not in the source data
@@ -120,14 +121,14 @@ WHERE {
     ?cho schema:material ?material .
     ?material schema:name ?originalMaterialName
     BIND(STRLANG(?originalMaterialName, "nl") AS ?materialName) # Missing in the source data
-    BIND(IRI(CONCAT("https://example.org/materials/", MD5(STR(?materialName)))) AS ?materialId)
+    BIND(IRI(CONCAT("https://example.org/materials/", MD5(STR(?material)))) AS ?materialId)
   }
 
   OPTIONAL {
     ?cho schema:additionalType ?additionalType .
     ?additionalType schema:name ?originalAdditionalTypeName
     BIND(STRLANG(?originalAdditionalTypeName, "nl") AS ?additionalTypeName) # Missing in the source data
-    BIND(IRI(CONCAT("https://example.org/additional-types/", MD5(STR(?additionalTypeName)))) AS ?additionalTypeId)
+    BIND(IRI(CONCAT("https://example.org/additional-types/", MD5(STR(?additionalType)))) AS ?additionalTypeId)
   }
 
   ?cho schema:associatedMedia ?associatedMedia .
