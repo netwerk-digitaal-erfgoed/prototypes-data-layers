@@ -1,13 +1,15 @@
 import { createReadStream } from "node:fs";
-import { glob } from "node:fs/promises";
 import path from "node:path";
+import { env } from "node:process";
+import { glob } from "node:fs/promises";
 import { chain } from "stream-chain";
 import { JsonlItem, jsonlParser } from "stream-json/jsonl/parser.js";
 import { batch } from "stream-json/utils/batch.js";
 import { z } from "zod";
-import { CollectionSchema, collectionSchemas } from "./typesense.js";
+import { Client, getClient } from "@repo/typesense/client";
+import { collectionSchemas } from "./typesense.js";
 
-async function ingestFile(filePath: string, collectionSchema: CollectionSchema) {
+async function ingestFile(filePath: string, typesenseClient: Client, collectionName: string) {
   await new Promise<void>((resolve, reject) => {
     let inFlightBatches = 0;
 
@@ -36,7 +38,7 @@ async function ingestFile(filePath: string, collectionSchema: CollectionSchema) 
       const documents = data.map((pair: JsonlItem) => pair.value);
 
       try {
-        await collectionSchema.documents.import(documents, {
+        await typesenseClient.collections(collectionName).documents().import(documents, {
           return_doc: false,
         });
       } finally {
@@ -58,6 +60,11 @@ type IngestInput = z.input<typeof ingestInputSchema>;
 export async function ingest(input: IngestInput) {
   const opts = ingestInputSchema.parse(input);
 
+  const typesenseClient = getClient({
+    apiKey: env.TYPESENSE_API_KEY!,
+    host: env.TYPESENSE_HOST!,
+  });
+
   const filePaths: string[] = [];
   const pattern = path.join(opts.inputDir, "*.jsonl");
   for await (const filePath of glob(pattern)) {
@@ -74,9 +81,7 @@ export async function ingest(input: IngestInput) {
     const indexOfFirstDot = fileName.indexOf(".");
     const collectionName = indexOfFirstDot !== -1 ? fileName.slice(indexOfFirstDot + 1) : fileName;
 
-    const collectionSchema = collectionSchemas.find(
-      (schema) => schema.schema.name === collectionName,
-    );
+    const collectionSchema = collectionSchemas.find((schema) => schema.name === collectionName);
     if (collectionSchema === undefined) {
       continue; // Not found
     }
@@ -84,7 +89,7 @@ export async function ingest(input: IngestInput) {
     // Delete the existing collection, if any.
     // Ignore error if the collection does not exist
     try {
-      await collectionSchema.delete();
+      await typesenseClient.collections(collectionName).delete();
     } catch (err) {
       const error = err as Error;
       if (!error.message.includes(`No collection with name \`${collectionName}\` found`)) {
@@ -93,9 +98,9 @@ export async function ingest(input: IngestInput) {
     }
 
     // Create or re-create the collection
-    await collectionSchema.create();
+    await typesenseClient.collections().create(collectionSchema);
 
     // Import the resources into the collection
-    await ingestFile(filePath, collectionSchema);
+    await ingestFile(filePath, typesenseClient, collectionName);
   }
 }

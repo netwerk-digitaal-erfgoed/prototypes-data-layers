@@ -18,6 +18,8 @@ Run these commands in the root of the repo:
 
     npm run build
 
+    cd apps/valeros-cli
+
     ./scripts/prepare.sh --output-file data/ingest.jsonld
 
     ./dist/valeros.mjs prepare --input-file data/ingest.jsonld --output-dir data/ingest
