@@ -1,7 +1,7 @@
 import { defineCommand } from "citty";
 import { prepare } from "../prepare.js";
 
-export const buildArgs = {
+const buildArgs = {
   inputFile: {
     type: "string",
     description: "JSON-LD file with data",
@@ -22,8 +22,8 @@ export default defineCommand({
   args: buildArgs,
   async run({ args }) {
     await prepare({
-      inputFile: args.inputFile!,
-      outputDir: args.outputDir!,
+      inputFile: args.inputFile,
+      outputDir: args.outputDir,
     });
   },
 });

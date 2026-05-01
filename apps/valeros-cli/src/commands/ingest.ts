@@ -1,7 +1,7 @@
 import { defineCommand } from "citty";
 import { ingest } from "../ingest.js";
 
-export const buildArgs = {
+const buildArgs = {
   inputDir: {
     type: "string",
     description: "Directory with JSON Lines files to ingest",

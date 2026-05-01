@@ -1,18 +1,22 @@
-import { setDefaultConfiguration } from "typesense-ts";
+import { Client as TypesenseClient } from "typesense";
 import { z } from "zod";
 
-const setConfigurationInputSchema = z.object({
+const getClientInputSchema = z.object({
   apiKey: z.string(),
   host: z.string(),
 });
 
-type SetConfigurationInput = z.input<typeof setConfigurationInputSchema>;
+type GetClientInput = z.input<typeof getClientInputSchema>;
 
-export function setConfiguration(input: SetConfigurationInput) {
-  const opts = setConfigurationInputSchema.parse(input);
+export function getClient(input: GetClientInput) {
+  const opts = getClientInputSchema.parse(input);
 
-  setDefaultConfiguration({
-    apiKey: opts.apiKey,
+  const client = new TypesenseClient({
     nodes: [{ url: opts.host }],
+    apiKey: opts.apiKey,
   });
+
+  return client;
 }
+
+export type Client = TypesenseClient;

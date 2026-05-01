@@ -109,6 +109,7 @@ app.get("/v1/heritage-objects", sValidator("query", collectionQuerySchema), asyn
   const query = c.req.valid("query");
 
   const searchResult = await search({
+    client: c.get("typesenseClient"),
     q: query.q,
     sort: query.sort,
     filter: buildFilter(query.filter),
@@ -171,6 +172,7 @@ app.get(
     const query = c.req.valid("query");
 
     const searchResult = await search({
+      client: c.get("typesenseClient"),
       page: params.page,
       size: query.size,
       q: query.q,

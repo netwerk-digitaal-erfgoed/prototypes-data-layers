@@ -1,5 +1,5 @@
+import { Client } from "typesense";
 import { z } from "zod";
-import { heritageObjectsSchema } from "./schemas.js";
 
 const includeFields = [
   "$additional_types(*)",
@@ -37,6 +37,7 @@ const excludeFields = [
 ];
 
 const searchInputSchema = z.object({
+  client: z.instanceof(Client),
   page: z.number().default(1),
   size: z.number().default(10),
   sort: z.string().optional(),
@@ -137,41 +138,42 @@ export type SearchResult = z.output<typeof searchResultSchema>;
 export async function search(input: SearchInput): Promise<SearchResult> {
   const opts = searchInputSchema.parse(input);
 
-  const response = await heritageObjectsSchema.search({
-    page: opts.page,
-    per_page: opts.size,
-    q: opts.q,
-    // The order matters: "A document that matches on a field earlier in
-    // the list of query_by fields is considered more relevant than a
-    // document matched on a field later in the list."
-    // (https://typesense.org/docs/guide/ranking-and-relevance.html)
-    query_by: [
-      "name",
-      "description",
-      "creator",
-      "content_location",
-      "additional_type",
-      "genre",
-      "material",
-      "subject",
-    ],
-    filter_by: opts.filter !== undefined ? opts.filter : "",
-    // @ts-expect-error - Typesense lib type struggle
-    exclude_fields: excludeFields,
-    // @ts-expect-error - Typesense lib doesn't support join fields
-    include_fields: includeFields,
-    facet_by: [
-      "additional_type",
-      "content_location",
-      "creator",
-      "dataset",
-      "genre",
-      "license",
-      "material",
-      "publisher",
-      "subject",
-    ],
-  });
+  const response = await opts.client
+    .collections("heritage_objects")
+    .documents()
+    .search({
+      page: opts.page,
+      per_page: opts.size,
+      q: opts.q,
+      // The order matters: "A document that matches on a field earlier in
+      // the list of query_by fields is considered more relevant than a
+      // document matched on a field later in the list."
+      // (https://typesense.org/docs/guide/ranking-and-relevance.html)
+      query_by: [
+        "name",
+        "description",
+        "creator",
+        "content_location",
+        "additional_type",
+        "genre",
+        "material",
+        "subject",
+      ],
+      filter_by: opts.filter !== undefined ? opts.filter : "",
+      exclude_fields: excludeFields,
+      include_fields: includeFields,
+      facet_by: [
+        "additional_type",
+        "content_location",
+        "creator",
+        "dataset",
+        "genre",
+        "license",
+        "material",
+        "publisher",
+        "subject",
+      ],
+    });
 
   const result = searchResultSchema.parse(response);
 

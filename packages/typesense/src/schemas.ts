@@ -1,12 +1,12 @@
-import { collection } from "typesense-ts";
+import { CollectionCreateSchema } from "typesense";
 
-export const additionalTypeSchema = collection({
+export const additionalTypeSchema = {
   name: "additional_types",
   fields: [
     { name: "type", type: "string" },
     { name: "name", type: "string" },
   ],
-});
+} as const satisfies CollectionCreateSchema;
 
 export type AdditionalType = {
   id: string;
@@ -14,13 +14,13 @@ export type AdditionalType = {
   name: string;
 };
 
-export const contentLocationsSchema = collection({
+export const contentLocationsSchema = {
   name: "content_locations",
   fields: [
     { name: "type", type: "string" },
     { name: "name", type: "string" },
   ],
-});
+} as const satisfies CollectionCreateSchema;
 
 export type ContentLocation = {
   id: string;
@@ -28,13 +28,13 @@ export type ContentLocation = {
   name: string;
 };
 
-export const creatorsSchema = collection({
+export const creatorsSchema = {
   name: "creators",
   fields: [
     { name: "type", type: "string" },
     { name: "name", type: "string" },
   ],
-});
+} as const satisfies CollectionCreateSchema;
 
 export type Creator = {
   id: string;
@@ -42,13 +42,13 @@ export type Creator = {
   name: string;
 };
 
-export const datasetsSchema = collection({
+export const datasetsSchema = {
   name: "datasets",
   fields: [
     { name: "type", type: "string" },
     { name: "name", type: "string" },
   ],
-});
+} as const satisfies CollectionCreateSchema;
 
 export type Dataset = {
   id: string;
@@ -56,13 +56,13 @@ export type Dataset = {
   name: string;
 };
 
-export const genresSchema = collection({
+export const genresSchema = {
   name: "genres",
   fields: [
     { name: "type", type: "string" },
     { name: "name", type: "string" },
   ],
-});
+} as const satisfies CollectionCreateSchema;
 
 export type Genre = {
   id: string;
@@ -70,7 +70,7 @@ export type Genre = {
   name: string;
 };
 
-export const heritageObjectsSchema = collection({
+export const heritageObjectsSchema = {
   name: "heritage_objects",
   enable_nested_fields: true,
   fields: [
@@ -111,7 +111,7 @@ export const heritageObjectsSchema = collection({
     { name: "subject", type: "string[]", optional: true, facet: true },
     { name: "subject_id", type: "string[]", optional: true, reference: "subjects.id" },
   ],
-});
+} as const satisfies CollectionCreateSchema;
 
 export type HeritageObject = {
   id: string;
@@ -144,14 +144,14 @@ export type HeritageObject = {
   subject_id?: string[];
 };
 
-export const licensesSchema = collection({
+export const licensesSchema = {
   name: "licenses",
   fields: [
     { name: "type", type: "string" },
     { name: "name", type: "string" },
     { name: "is_based_on", type: "string" },
   ],
-});
+} as const satisfies CollectionCreateSchema;
 
 export type License = {
   id: string;
@@ -160,13 +160,13 @@ export type License = {
   is_based_on: string;
 };
 
-export const materialsSchema = collection({
+export const materialsSchema = {
   name: "materials",
   fields: [
     { name: "type", type: "string" },
     { name: "name", type: "string" },
   ],
-});
+} as const satisfies CollectionCreateSchema;
 
 export type Material = {
   id: string;
@@ -174,7 +174,7 @@ export type Material = {
   name: string;
 };
 
-export const mediaObjectsSchema = collection({
+export const mediaObjectsSchema = {
   name: "media_objects",
   enable_nested_fields: true,
   fields: [
@@ -187,7 +187,7 @@ export const mediaObjectsSchema = collection({
     { name: "is_based_on.type", type: "string", optional: true },
     { name: "is_based_on.encoding_format", type: "string", optional: true },
   ],
-});
+} as const satisfies CollectionCreateSchema;
 
 export type MediaObject = {
   id: string;
@@ -202,13 +202,13 @@ export type MediaObject = {
   };
 };
 
-export const publishersSchema = collection({
+export const publishersSchema = {
   name: "publishers",
   fields: [
     { name: "type", type: "string" },
     { name: "name", type: "string" },
   ],
-});
+} as const satisfies CollectionCreateSchema;
 
 export type Publisher = {
   id: string;
@@ -216,33 +216,16 @@ export type Publisher = {
   name: string;
 };
 
-export const subjectsSchema = collection({
+export const subjectsSchema = {
   name: "subjects",
   fields: [
     { name: "type", type: "string" },
     { name: "name", type: "string" },
   ],
-});
+} as const satisfies CollectionCreateSchema;
 
 export type Subject = {
   id: string;
   type: string;
   name: string;
 };
-
-// Register the collections globally for type safety
-declare module "typesense-ts" {
-  interface Collections {
-    additionalTypes: typeof additionalTypeSchema.schema;
-    contentLocations: typeof contentLocationsSchema.schema;
-    creators: typeof creatorsSchema.schema;
-    datasets: typeof datasetsSchema.schema;
-    genres: typeof genresSchema.schema;
-    heritageObjects: typeof heritageObjectsSchema.schema;
-    licenses: typeof licensesSchema.schema;
-    materials: typeof materialsSchema.schema;
-    mediaObjects: typeof mediaObjectsSchema.schema;
-    publishers: typeof publishersSchema.schema;
-    subjects: typeof subjectsSchema.schema;
-  }
-}
