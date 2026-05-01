@@ -109,8 +109,6 @@ app.get("/v1/heritage-objects", sValidator("query", collectionQuerySchema), asyn
   const query = c.req.valid("query");
 
   const searchResult = await search({
-    page: 1, // Required
-    size: 1, // Required
     q: query.q,
     sort: query.sort,
     filter: buildFilter(query.filter),
