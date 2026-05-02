@@ -1,6 +1,7 @@
 # Simple query for preparing the data for ingestion into the search index.
 # See also: https://collections.uu.nl/datasetregister
 
+PREFIX afn: <http://jena.apache.org/ARQ/function#>
 PREFIX ext: <https://example.org/>
 PREFIX schema: <https://schema.org/>
 
@@ -41,22 +42,22 @@ CONSTRUCT {
   ?publisher a ext:Organization ;
     ext:name ?publisherName .
 
-  ?creatorId a ext:Creator ;
+  ?creatorId a ?creatorType ;
     ext:name ?creatorName .
 
-  ?genreId a ext:Genre ;
+  ?genreId a ?genreType ;
     ext:name ?genreName .
 
-  ?materialId a ext:Material ;
+  ?materialId a ?materialType ;
     ext:name ?materialName .
 
-  ?additionalTypeId a ext:AdditionalType ;
+  ?additionalTypeId a ?additionalTypeType ;
     ext:name ?additionalTypeName .
 
-  ?contentLocationId a ext:ContentLocation ;
+  ?contentLocationId a ?contentLocationType ;
     ext:name ?contentLocationName .
 
-  ?subjectId a ext:Subject ;
+  ?subjectId a ?subjectType ;
     ext:name ?subjectName .
 
   ?associatedMediaId a ?associatedMediaType ;
@@ -73,23 +74,33 @@ WHERE {
   #BIND(<https://n2t.net/ark:/40020/collect163299> AS ?cho)
   #BIND(<https://n2t.net/ark:/40020/collect95460> AS ?cho)
 
-  ?cho a ?choType ;
-    schema:name ?name ;
+  ?cho a ?nativeChoType .
+  BIND(afn:localname(?nativeChoType) AS ?choTypeLocalName) # E.g. `CreativeWork`
+  BIND(IRI(CONCAT("https://example.org/", STR(?choTypeLocalName))) AS ?choType)
+
+  ?cho schema:name ?name ;
     schema:isPartOf ?originalDataset .
 
   # Normally this info comes from the NDE Dataset Register
   ?originalDataset a schema:Dataset .
-  BIND(IRI(CONCAT("https://example.org/datasets/", MD5(STR(?originalDataset)))) AS ?dataset)
+  BIND(IRI(CONCAT("https://example.org/", MD5(STR(?originalDataset)))) AS ?dataset)
   BIND("Collectie Universiteitsmuseum Utrecht"@nl AS ?datasetName)
-  BIND(IRI(CONCAT("https://example.org/publishers/", MD5("https://www.umu.nl"))) AS ?publisher)
+
+  BIND(IRI(CONCAT("https://example.org/", MD5("https://www.umu.nl"))) AS ?publisher)
   BIND("Universiteitsmuseum Utrecht"@nl AS ?publisherName)
+
   BIND(IRI("http://standaarden.overheid.nl/owms/terms/geslotenlicentie") AS ?originalDatasetLicense)
-  BIND(IRI(CONCAT("https://example.org/licenses/", MD5(STR(?originalDatasetLicense)))) AS ?datasetLicense)
+  BIND(IRI(CONCAT("https://example.org/", MD5(STR(?originalDatasetLicense)))) AS ?datasetLicense)
   BIND("Gesloten licentie"@nl AS ?datasetLicenseName)
 
+  # Creator is a blank node, not a term IRI. Use the name instead for grouping
   ?cho schema:creator ?creator .
   ?creator schema:name ?creatorName .
-  BIND(IRI(CONCAT("https://example.org/creators/", MD5(STR(?creatorName)))) AS ?creatorId)
+  BIND(IRI(CONCAT("https://example.org/", MD5(STR(?creatorName)))) AS ?creatorId)
+
+  ?creator a ?creatorNativeType # E.g. `schema:Person` or `schema:Organization`
+  BIND(afn:localname(?creatorNativeType) AS ?creatorLocalName) # E.g. `Person`
+  BIND(IRI(CONCAT("https://example.org/", STR(?creatorLocalName))) AS ?creatorType)
 
   OPTIONAL { ?cho schema:description ?description }
 
@@ -100,44 +111,72 @@ WHERE {
     BIND(STR(?originalDateCreated) AS ?dateCreated)
   }
 
+  # Genre is a blank node, not a term IRI. Use the name instead for grouping
   OPTIONAL {
     ?cho schema:genre ?genre .
     ?genre schema:name ?genreName .
-    BIND(IRI(CONCAT("https://example.org/genres/", MD5(STR(?genreName)))) AS ?genreId)
+    BIND(IRI(CONCAT("https://example.org/", MD5(STR(?genreName)))) AS ?genreId)
+
+    ?genre a ?genreNativeType # E.g. `schema:DefinedTerm`
+    BIND(afn:localname(?genreNativeType) AS ?genreLocalName) # E.g. `DefinedTerm`
+    BIND(IRI(CONCAT("https://example.org/", STR(?genreLocalName))) AS ?genreType)
   }
 
+  # Material is a blank node, not a term IRI. Use the name instead for grouping
   OPTIONAL {
     ?cho schema:material ?material .
     ?material schema:name ?materialName .
-    BIND(IRI(CONCAT("https://example.org/materials/", MD5(STR(?materialName)))) AS ?materialId)
+    BIND(IRI(CONCAT("https://example.org/", MD5(STR(?materialName)))) AS ?materialId)
+
+    ?material a ?materialNativeType # E.g. `schema:DefinedTerm`
+    BIND(afn:localname(?materialNativeType) AS ?materialLocalName) # E.g. `DefinedTerm`
+    BIND(IRI(CONCAT("https://example.org/", STR(?materialLocalName))) AS ?materialType)
   }
 
+  # Additional type is a blank node, not a term IRI. Use the name instead for grouping
   OPTIONAL {
     ?cho schema:additionalType ?additionalType .
     ?additionalType schema:name ?additionalTypeName .
-    BIND(IRI(CONCAT("https://example.org/additional-types/", MD5(STR(?additionalTypeName)))) AS ?additionalTypeId)
+    BIND(IRI(CONCAT("https://example.org/", MD5(STR(?additionalTypeName)))) AS ?additionalTypeId)
+
+    ?additionalType a ?additionalTypeNativeType # E.g. `schema:DefinedTerm`
+    BIND(afn:localname(?additionalTypeNativeType) AS ?additionalTypeLocalName) # E.g. `DefinedTerm`
+    BIND(IRI(CONCAT("https://example.org/", STR(?additionalTypeLocalName))) AS ?additionalTypeType)
   }
 
+  # Location is a blank node, not a term IRI. Use the name instead for grouping
   OPTIONAL {
     ?cho schema:contentLocation ?contentLocation .
     ?contentLocation schema:name ?contentLocationName .
-    BIND(IRI(CONCAT("https://example.org/places/", MD5(STR(?contentLocationName)))) AS ?contentLocationId)
+    BIND(IRI(CONCAT("https://example.org/", MD5(STR(?contentLocationName)))) AS ?contentLocationId)
+
+    ?contentLocation a ?contentLocationNativeType # E.g. `schema:Place`
+    BIND(afn:localname(?contentLocationNativeType) AS ?contentLocationLocalName) # E.g. `Place`
+    BIND(IRI(CONCAT("https://example.org/", STR(?contentLocationLocalName))) AS ?contentLocationType)
   }
 
+  # Subject is a blank node, not a term IRI. Use the name instead for grouping
   OPTIONAL {
     ?cho schema:about ?subject .
     ?subject schema:name ?subjectName
-    BIND(IRI(CONCAT("https://example.org/subjects/", MD5(STR(?subjectName)))) AS ?subjectId)
+    BIND(IRI(CONCAT("https://example.org/", MD5(STR(?subjectName)))) AS ?subjectId)
+
+    ?subject a ?subjectNativeType # E.g. `schema:DefinedTerm` or `schema:Person`
+    BIND(afn:localname(?subjectNativeType) AS ?subjectLocalName) # E.g. `DefinedTerm`
+    BIND(IRI(CONCAT("https://example.org/", STR(?subjectLocalName))) AS ?subjectType)
   }
 
   ?cho schema:associatedMedia ?associatedMedia .
-  ?associatedMedia a ?associatedMediaType ;
-    schema:contentUrl ?contentUrlAsString ;
+  ?associatedMedia schema:contentUrl ?contentUrlAsString ;
     schema:thumbnailUrl ?thumbnailUrlAsString .
+
+  ?associatedMedia a ?associatedMediaNativeType # E.g. `schema:MediaObject`, `schema:ImageObject`
+  BIND(afn:localname(?associatedMediaNativeType) AS ?associatedMediaLocalName) # E.g. `ImageObject`
+  BIND(IRI(CONCAT("https://example.org/", STR(?associatedMediaLocalName))) AS ?associatedMediaType)
 
   BIND(IRI(?contentUrlAsString) AS ?contentUrl)
   BIND(IRI(?thumbnailUrlAsString) AS ?thumbnailUrl)
-  BIND(IRI(CONCAT("https://example.org/media-objects/", MD5(STR(?contentUrl)))) AS ?associatedMediaId)
+  BIND(IRI(CONCAT("https://example.org/", MD5(STR(?contentUrl)))) AS ?associatedMediaId)
 
   # Missing in the source data - assume it's the same license as the dataset
   BIND(?datasetLicense AS ?mediaObjectLicense)
@@ -146,7 +185,7 @@ WHERE {
   OPTIONAL {
     ?associatedMedia schema:isBasedOn ?isBasedOnRaw .
 
-    # Remove the trailing "/info.json"
+    # Remove the trailing "/info.json" - not according to the NDE spec
     BIND(IRI(STRBEFORE(STR(?isBasedOnRaw), "/info.json")) AS ?isBasedOn)
 
     # Missing in the source data

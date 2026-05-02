@@ -1,12 +1,13 @@
 # Simple query for preparing the data for ingestion into the search index.
 # See also: https://datasetregister.netwerkdigitaalerfgoed.nl/en/datasets/http://data.bibliotheken.nl/id/dataset/rise-alba
 
+PREFIX afn: <http://jena.apache.org/ARQ/function#>
 PREFIX ext: <https://example.org/>
 PREFIX schema: <https://schema.org/>
 PREFIX sdo: <http://schema.org/> # Not: `https://`
 
 CONSTRUCT {
-  ?cho a ?choType ;
+  ?cho a ?choType, ?choCreativeWorkType ;
     ext:name ?name ;
     ext:dataset ?dataset ;
     ext:datasetName ?datasetName ;
@@ -36,20 +37,20 @@ CONSTRUCT {
   ?publisher a ext:Organization ;
     ext:name ?publisherName .
 
-  ?creatorId a ext:Creator ;
+  ?creatorId a ?creatorType ;
     ext:name ?creatorName .
 
-  ?genreId a ext:Genre ;
+  ?genreId a ?genreType ;
     ext:name ?genreName .
 
-  ?materialId a ext:Material ;
+  ?materialId a ?materialType ;
     ext:name ?materialName .
 
   ?mediaObjectLicense a ext:License ;
     ext:name ?mediaObjectLicenseName ;
     ext:isBasedOn ?originalMediaObjectLicense .
 
-  ?associatedMediaId a schema:ImageObject ;
+  ?associatedMediaId a ext:ImageObject ;
     ext:license ?mediaObjectLicense ;
     ext:contentUrl ?contentUrl ;
     ext:thumbnailUrl ?contentUrl . # Missing in the source data
@@ -58,25 +59,32 @@ WHERE {
   #Examples:
   #BIND(<http://data.bibliotheken.nl/id/alba/p421311827> AS ?cho)
 
-  ?cho a ?choType
-  FILTER(?choType IN (sdo:Chapter, sdo:VisualArtWork))
+  ?cho a ?nativeChoType
+  FILTER(?nativeChoType IN (sdo:Chapter, sdo:VisualArtWork)) # Ignore invalid types
+  BIND(afn:localname(?nativeChoType) AS ?choTypeLocalName) # E.g. `Chapter`
+  BIND(IRI(CONCAT("https://example.org/", STR(?choTypeLocalName))) AS ?choType)
+  BIND(<https://example.org/CreativeWork> AS ?choCreativeWorkType) # Missing in the source data
 
   # Normally this info comes from the NDE Dataset Register
   BIND(<http://data.bibliotheken.nl/id/dataset/rise-alba> AS ?originalDataset)
-  BIND(IRI(CONCAT("https://example.org/datasets/", MD5(STR(?originalDataset)))) AS ?dataset)
+  BIND(IRI(CONCAT("https://example.org/", MD5(STR(?originalDataset)))) AS ?dataset)
   BIND("Alba amicorum van de Koninklijke Bibliotheek"@nl AS ?datasetName)
-  BIND(IRI(CONCAT("https://example.org/publishers/", MD5("http://data.bibliotheken.nl/id/thes/p075301482"))) AS ?publisher)
+
+  BIND(IRI(CONCAT("https://example.org/", MD5("http://data.bibliotheken.nl/id/thes/p075301482"))) AS ?publisher)
   BIND("KB, nationale bibliotheek"@nl AS ?publisherName)
+
   BIND(IRI("https://creativecommons.org/publicdomain/zero/1.0/") AS ?originalDatasetLicense)
-  BIND(IRI(CONCAT("https://example.org/licenses/", MD5(STR(?originalDatasetLicense)))) AS ?datasetLicense)
+  BIND(IRI(CONCAT("https://example.org/", MD5(STR(?originalDatasetLicense)))) AS ?datasetLicense)
   BIND("CC0 1.0 Universeel"@nl AS ?datasetLicenseName)
 
   ?cho sdo:name ?name
   FILTER(LANG(?name) = "nl")
 
+  # Literal reference to a creator, not a term IRI
   ?cho sdo:author ?creatorName
   FILTER(LANG(?creatorName) = "nl")
-  BIND(IRI(CONCAT("https://example.org/creators/", MD5(STR(?creatorName)))) AS ?creatorId)
+  BIND(IRI(CONCAT("https://example.org/", MD5(STR(?creatorName)))) AS ?creatorId)
+  BIND(ext:Person AS ?creatorType) # Missing in the source data; guess - could also be an Organization
 
   OPTIONAL {
     ?cho sdo:description ?description
@@ -89,10 +97,14 @@ WHERE {
     FILTER(LANG(?dateCreated) = "")
   }
 
-  OPTIONAL {
-    ?cho sdo:locationCreated ?locationCreated
-    FILTER(LANG(?locationCreated) = "nl")
-  }
+  # Literal reference to a location, not a term IRI.
+  # Currently not in use - maybe later
+  #OPTIONAL {
+  #  ?cho sdo:locationCreated ?locationCreatedName
+  #  BIND(ext:Place AS ?locationCreatedType) # Missing in the source data
+  #  FILTER(LANG(?locationCreatedName) = "nl")
+  #  BIND(IRI(CONCAT("https://example.org/", MD5(STR(?locationCreatedName)))) AS ?locationCreatedId)
+  #}
 
   # Ignore: not in ISO8601 time interval format
   #OPTIONAL {
@@ -100,23 +112,27 @@ WHERE {
   #  FILTER(LANG(?temporalCoverage) = "nl")
   #}
 
+  # Literal reference to a genre, not a term IRI
   OPTIONAL {
     ?cho sdo:genre ?genreName
     FILTER(LANG(?genreName) = "nl")
-    BIND(IRI(CONCAT("https://example.org/genres/", MD5(STR(?genreName)))) AS ?genreId)
+    BIND(IRI(CONCAT("https://example.org/", MD5(STR(?genreName)))) AS ?genreId)
+    BIND(ext:DefinedTerm AS ?genreType) # Missing in the source data
   }
 
+  # Literal reference to a material, not a term IRI
   OPTIONAL {
     ?cho sdo:material ?materialName
     FILTER(isLiteral(?materialName) && LANG(?materialName) = "nl")
-    BIND(IRI(CONCAT("https://example.org/materials/", MD5(STR(?materialName)))) AS ?materialId)
+    BIND(IRI(CONCAT("https://example.org/", MD5(STR(?materialName)))) AS ?materialId)
+    BIND(ext:DefinedTerm AS ?materialType) # Missing in the source data
   }
 
   ?cho sdo:image ?image .
   ?image a sdo:ImageObject ;
     sdo:contentUrl ?contentUrl ;
     sdo:license ?originalMediaObjectLicense .
-  BIND(IRI(CONCAT("https://example.org/media-objects/", MD5(STR(?contentUrl)))) AS ?associatedMediaId)
-  BIND(IRI(CONCAT("https://example.org/licenses/", MD5(STR(?originalMediaObjectLicense)))) AS ?mediaObjectLicense)
+  BIND(IRI(CONCAT("https://example.org/", MD5(STR(?contentUrl)))) AS ?associatedMediaId)
+  BIND(IRI(CONCAT("https://example.org/", MD5(STR(?originalMediaObjectLicense)))) AS ?mediaObjectLicense)
   BIND("Public Domain Mark 1.0 Universeel"@nl AS ?mediaObjectLicenseName)
 }
