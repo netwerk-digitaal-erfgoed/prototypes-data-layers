@@ -36,7 +36,7 @@ const valueSchemaMultiple = z.preprocess(
 const additionalTypeJsonLdSchema = z
   .object({
     "@id": z.string(),
-    "@type": z.literal("ext:AdditionalType"),
+    "@type": z.literal("ext:DefinedTerm"),
     "ext:name": valueSchemaMultiple,
   })
   .transform((data) => ({
@@ -48,7 +48,7 @@ const additionalTypeJsonLdSchema = z
 const contentLocationJsonLdSchema = z
   .object({
     "@id": z.string(),
-    "@type": z.literal("ext:ContentLocation"),
+    "@type": z.literal("ext:Place"),
     "ext:name": valueSchemaMultiple,
   })
   .transform((data) => ({
@@ -60,12 +60,15 @@ const contentLocationJsonLdSchema = z
 const creatorJsonLdSchema = z
   .object({
     "@id": z.string(),
-    "@type": z.literal("ext:Creator"),
+    // Remove prefix, e.g. `ext:Person` to `Person`
+    "@type": z
+      .enum(["ext:Person", "ext:Organization"])
+      .transform((data) => data.replace(/^.*:/, "")),
     "ext:name": valueSchemaMultiple,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
-    type: "Person",
+    type: data["@type"],
     name: data["ext:name"]?.join("; "), // Merge into one string
   }));
 
@@ -84,7 +87,7 @@ const datasetJsonLdSchema = z
 const genreJsonLdSchema = z
   .object({
     "@id": z.string(),
-    "@type": z.literal("ext:Genre"),
+    "@type": z.literal("ext:DefinedTerm"),
     "ext:name": valueSchemaMultiple,
   })
   .transform((data) => ({
@@ -99,7 +102,7 @@ const heritageObjectJsonLdSchema = z
     "@type": z.preprocess(
       (value) => (Array.isArray(value) ? value : [value]),
       z.array(
-        // Remove prefix, e.g. `schema:CreativeWork` or `sdo:Chapter`
+        // Remove prefix, e.g. `ext:CreativeWork` or `ext:Chapter`
         z.string().transform((data) => data.replace(/^.*:/, "")),
       ),
     ),
@@ -174,7 +177,7 @@ const licenseJsonLdSchema = z
 const materialJsonLdSchema = z
   .object({
     "@id": z.string(),
-    "@type": z.literal("ext:Material"),
+    "@type": z.literal("ext:DefinedTerm"),
     "ext:name": valueSchemaMultiple,
   })
   .transform((data) => ({
@@ -186,12 +189,13 @@ const materialJsonLdSchema = z
 const mediaObjectJsonLdSchema = z
   .object({
     "@id": z.string(),
+    // Remove prefix, e.g. `ext:MediaObject` to `MediaObject`
     "@type": z.preprocess(
       (value) => (Array.isArray(value) ? value : [value]),
       z.array(
         z
-          .enum(["schema:MediaObject", "schema:ImageObject"])
-          .transform((data) => data.replace("schema:", "")), // Remove prefix
+          .enum(["ext:MediaObject", "ext:ImageObject"])
+          .transform((data) => data.replace(/^.*:/, "")),
       ),
     ),
     "ext:contentUrl": idSchemaOne,
@@ -223,25 +227,27 @@ const mediaObjectJsonLdSchema = z
 const publisherJsonLdSchema = z
   .object({
     "@id": z.string(),
-    "@type": z.literal("ext:Organization"),
+    // Remove prefix, e.g. `ext:Organization` to `Organization`
+    "@type": z.literal("ext:Organization").transform((data) => data.replace(/^.*:/, "")),
     "ext:name": valueSchemaMultiple,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
-    type: "Organization",
+    type: data["@type"],
     name: data["ext:name"]?.join("; "), // Merge into one string
   }));
 
+// Beware: a subject can also refer to e.g. a person or a creative work, not just a term
 const subjectJsonLdSchema = z
   .object({
     "@id": z.string(),
-    "@type": z.literal("ext:Subject"),
+    // Remove prefix, e.g. `ext:DefinedTerm` to `DefinedTerm`
+    "@type": z.string().transform((data) => data.replace(/^.*:/, "")),
     "ext:name": valueSchemaMultiple,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
-    // TBD: a subject can also refer to a person or a creative work, not just a term
-    type: "DefinedTerm",
+    type: data["@type"],
     name: data["ext:name"]?.join("; "), // Merge into one string
   }));
 
