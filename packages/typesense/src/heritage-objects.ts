@@ -163,7 +163,7 @@ export async function search(input: SearchInput): Promise<SearchResult> {
         "material",
         "subject",
       ],
-      filter_by: opts.filter !== undefined ? opts.filter : "",
+      filter_by: opts.filter,
       exclude_fields: excludeFields,
       include_fields: includeFields,
       facet_by: [
