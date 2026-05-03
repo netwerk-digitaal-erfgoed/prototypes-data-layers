@@ -65,6 +65,14 @@ Find the heritage objects that match query `instrument`, that are about location
 
     curl http://localhost:3000/v1/heritage-objects/page/1?size=10&q=instrument&filter=contentLocation%3ANederland&filter=genre%3Anatuurkunde
 
+Find the heritage objects that match genre name `natuurlijke historie` (mind the backticks, for escaping):
+
+    curl http://localhost:3000/v1/heritage-objects/page/1?size=10&filter=genre%3A%3D%60natuurlijke%20historie%60
+
+Find the heritage objects that match genre ID `http://localhost:3000/v1/terms/a5b066b96fac9f0e71534f1a7811a24a` (name: "natuurlijke historie"):
+
+    curl http://localhost:3000/v1/heritage-objects/page/1?size=10&filter=genre.id%3Ahttp%3A%2F%2Flocalhost%3A3000%2Fv1%2Fterms%2F26abb4f2d20483c594b6ec695240071e
+
 Get a specific heritage object:
 
     curl http://localhost:3000/v1/heritage-objects/f3cb201d0d6068c4c959f352b49a7587

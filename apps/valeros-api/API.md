@@ -40,6 +40,7 @@
 > 1. How to model the provenance trail of the data, e.g. the original datasets that were used? Use [PROV-O](https://www.w3.org/TR/prov-o/)?
 > 1. Think about CORS and e.g. the `Access-Control-Allow-Origin` header
 > 1. Create [JSON Schemas](https://json-schema.org/)?
+> 1. Think about the opaqueness of API resource URIs, e.g. `https://example.org/heritage-objects/{id}` versus `https://example.org/{id}`. Also see [Linked Art's good practices](https://linked.art/api/1.0/protocol/#uri-good-practices).
 
 ## Alignment with other API specifications
 
@@ -170,13 +171,13 @@ All endpoints accept and return the same HTTP headers:
 
 ##### URI parameters
 
-| Property | Data type | Cardinality | Description                                      |
-| -------- | --------- | ----------- | ------------------------------------------------ |
-| `page`   | Number    | 1           | Page index, e.g. `1`                             |
-| `size`   | Number    | 0 or 1      | Number of items per page, e.g. `10`              |
-| `q`      | String    | 0 or 1      | Search query, e.g. `lab*`                        |
-| `sort`   | String    | 0 or 1      | Sort property and order, e.g. `dateCreated:desc` |
-| `filter` | String    | 0 or more   | Facet name and value, e.g. `creator:John Doe`    |
+| Property | Data type | Cardinality | Description                                                                                                          |
+| -------- | --------- | ----------- | -------------------------------------------------------------------------------------------------------------------- |
+| `page`   | Number    | 1           | Page index, e.g. `1`                                                                                                 |
+| `size`   | Number    | 0 or 1      | Number of items per page, e.g. `10`                                                                                  |
+| `q`      | String    | 0 or 1      | Search query, e.g. `lab*`                                                                                            |
+| `sort`   | String    | 0 or 1      | Sort property and order, e.g. `dateCreated:desc`                                                                     |
+| `filter` | String    | 0 or more   | Filter name and value, e.g. `creator:John` (by literal) or `creator.id:https://example.org/v1/persons/{id})` (by ID) |
 
 #### Response
 

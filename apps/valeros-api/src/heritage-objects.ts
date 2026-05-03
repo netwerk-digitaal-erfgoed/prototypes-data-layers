@@ -1,6 +1,6 @@
 import { sValidator } from "@hono/standard-validator";
 import { Document, retrieve, search, SearchResult } from "@repo/typesense/heritage-objects";
-import { Context, Hono } from "hono";
+import { Hono } from "hono";
 import { z } from "zod";
 import { Env } from "./env.js";
 
@@ -19,24 +19,61 @@ const facets = new Map([
   ["subject", "subject"],
 ]);
 
+const idSuffix = ".id";
+
 function buildFilter(filters: string[]) {
-  let filter: string | undefined;
   const internalFilters: string[] = [];
 
   for (const filter of filters) {
-    // Keep only filters of format `key:value`, e.g. `dateCreated:=1900` or `dateCreated:>1900`
-    const [key, value] = filter.split(":", 2);
-    if (!key || !value) {
-      continue; // Undefined or empty
+    // Keep only filters of format `key:value`, e.g.
+    // - `dateCreated:=1900`
+    // - `dateCreated:>1900`
+    // - `creator:John`
+    // - `creator.id:https://example.org/resource/1234`
+    const separatorPosition = filter.indexOf(":");
+    if (separatorPosition === -1) {
+      continue; // Invalid filter; ignore
     }
 
-    // Translate external keys (e.g. `dateCreated`) to internal keys (e.g. `date_created`)
+    let key = filter.slice(0, separatorPosition);
+    let value = filter.slice(separatorPosition + 1);
+    if (key.length === 0 || value.length === 0) {
+      continue; // Empty - ignore
+    }
+
+    let nestedKey = "";
+
+    // Special case: if a key ends with `.id` (e.g. `creator.id`),
+    // an 'identity filter' is given and we must filter resources
+    // based on the given URI (e.g. `https://example.org/resource/1234`)
+    const hasNestedIdKey = key.endsWith(idSuffix);
+    if (hasNestedIdKey) {
+      // Extract the ID from the URI, e.g.
+      // `https://example.org/resource/1234` => `1234`
+      const slashPosition = value.lastIndexOf("/");
+      if (slashPosition === -1) {
+        continue; // No ID found - ignore
+      }
+
+      value = value.slice(slashPosition + 1);
+      if (value.length === 0) {
+        continue; // No ID found - ignore
+      }
+
+      nestedKey = "_id";
+      key = key.slice(0, -idSuffix.length); // Remove the `.id` suffix
+    }
+
+    // Translate external keys to internal keys,
+    // e.g. from `dateCreated` to `date_created`
     facets.forEach((externalName, internalName) => {
       if (key === externalName) {
-        internalFilters.push(`${internalName}:${value}`);
+        internalFilters.push(`${internalName}${nestedKey}:${value}`);
       }
     });
   }
+
+  let filter: string | undefined;
 
   if (internalFilters.length > 0) {
     // E.g. `creator:=John && date_created:>1900`
@@ -115,17 +152,17 @@ app.get("/v1/heritage-objects", sValidator("query", collectionQuerySchema), asyn
     filter: buildFilter(query.filter),
   });
 
-  const response = buildCollectionResponse(c, query, searchResult);
+  const baseUri = new URL(c.req.url).origin + "/v1";
+  const response = buildCollectionResponse(baseUri, query, searchResult);
 
   return c.json(response);
 });
 
 function buildCollectionResponse(
-  c: Context<Env>,
+  baseUri: string,
   query: CollectionQuery,
   searchResult: SearchResult,
 ) {
-  const baseUri = new URL(c.req.url).origin + "/v1";
   const queryString = buildQueryString(query);
   const navPages = getNavPages(baseUri, queryString, searchResult);
 
@@ -180,15 +217,14 @@ app.get(
       filter: buildFilter(query.filter),
     });
 
-    const response = buildPagedCollectionResponse(c, query, searchResult);
+    const baseUri = new URL(c.req.url).origin + "/v1";
+    const response = buildPagedCollectionResponse(baseUri, query, searchResult);
 
     return c.json(response);
   },
 );
 
-function buildDocumentResponse(c: Context<Env>, document: Document) {
-  const baseUri = new URL(c.req.url).origin + "/v1";
-
+function buildDocumentResponse(baseUri: string, document: Document) {
   const response = {
     id: `${baseUri}/heritage-objects/${document.id}`,
     type: document.type,
@@ -201,6 +237,7 @@ function buildDocumentResponse(c: Context<Env>, document: Document) {
       name: type.name,
     })),
     creator: document.creators?.map((creator) => ({
+      // TODO: a creator can also refer to an organization, not just a person
       id: `${baseUri}/persons/${creator.id}`,
       type: creator.type,
       name: creator.name,
@@ -221,7 +258,7 @@ function buildDocumentResponse(c: Context<Env>, document: Document) {
       name: material.name,
     })),
     about: document.subjects?.map((subject) => ({
-      // TBD: a subject can also refer to a person or a creative work, not just a term
+      // TODO: a subject can also refer to e.g. a person or a creative work, not just a term
       id: `${baseUri}/terms/${subject.id}`,
       type: subject.type,
       name: subject.name,
@@ -263,11 +300,10 @@ function buildDocumentResponse(c: Context<Env>, document: Document) {
 }
 
 function buildPagedCollectionResponse(
-  c: Context<Env>,
+  baseUri: string,
   query: PagedCollectionQuery,
   searchResult: SearchResult,
 ) {
-  const baseUri = new URL(c.req.url).origin + "/v1";
   const queryString = buildQueryString(query);
   const navPages = getNavPages(baseUri, queryString, searchResult);
 
@@ -276,7 +312,7 @@ function buildPagedCollectionResponse(
     type: "OrderedCollectionPage",
     next: navPages.get("next"),
     prev: navPages.get("prev"),
-    orderedItems: searchResult.hits.map((hit) => buildDocumentResponse(c, hit.document)),
+    orderedItems: searchResult.hits.map((hit) => buildDocumentResponse(baseUri, hit.document)),
     partOf: {
       id: `${baseUri}/heritage-objects${queryString}`,
       type: "OrderedCollection",
@@ -314,7 +350,8 @@ app.get("/v1/heritage-objects/:id", sValidator("param", singleResourceParamsSche
     return c.notFound();
   }
 
-  const response = buildDocumentResponse(c, document);
+  const baseUri = new URL(c.req.url).origin + "/v1";
+  const response = buildDocumentResponse(baseUri, document);
 
   return c.json(response);
 });
