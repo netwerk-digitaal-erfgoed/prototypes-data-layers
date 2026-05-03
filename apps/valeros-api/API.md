@@ -290,10 +290,15 @@ Design decisions:
       "type": ["MediaObject", "ImageObject"],
       "license": {
         "id": "https://example.org/v1/licenses/{id}",
-        "name": "Creative Commons: publieke domein"
+        "name": "Creative Commons: publieke domein",
+        "isBasedOn": "http://creativecommons.org/publicdomain/mark/1.0/"
       },
       "contentUrl": "https://collections.uu.nl/IIIF/33832/full/max/0/default.jpg",
-      "thumbnailUrl": "https://collections.uu.nl/IIIF/33832/full/!512,512/0/default.jpg"
+      "thumbnailUrl": "https://collections.uu.nl/IIIF/33832/full/!512,512/0/default.jpg",
+      "isBasedOn": {
+        "id": "https://collections.uu.nl/IIIF/33832",
+        "encodingFormat": "application/ld+json;profile='http://iiif.io/api/image/3/context.json'"
+      }
     }
   ],
   "description": "Zwart-wit foto van een kamer in het fysisch laboratorium te Utrecht, met rechts de amanuensis dhr. Marinus Pieter Filbri, in het midden de toen nog assistent Van Huffel en links de instrumentmaker G. Koolschijn, Utrecht, 1896.",
@@ -349,7 +354,8 @@ Design decisions:
       "license": {
         "id": "https://example.org/v1/licenses/{id}",
         "type": "CreativeWork",
-        "name": "Creative Commons: publieke domein"
+        "name": "Creative Commons: publieke domein",
+        "isBasedOn": "http://creativecommons.org/publicdomain/mark/1.0/"
       }
     }
   ],
@@ -487,7 +493,8 @@ Design decisions:
   "license": {
     "id": "https://example.org/v1/licenses/{id}",
     "type": "CreativeWork",
-    "name": "Creative Commons: publieke domein"
+    "name": "Creative Commons: publieke domein",
+    "isBasedOn": "http://creativecommons.org/publicdomain/mark/1.0/"
   },
   "copyrightNotice": "© 2025 Example Museum, with permission from Ph. Otographer",
   "contentUrl": "https://collections.uu.nl/IIIF/33832/full/max/0/default.jpg",
@@ -514,10 +521,7 @@ Design decisions:
   "id": "https://example.org/v1/licenses/{id}",
   "type": "CreativeWork",
   "name": "Creative Commons: publieke domein",
-  "isBasedOn": {
-    "id": "https://creativecommons.org/public-domain/cc0/",
-    "type": "CreativeWork"
-  }
+  "isBasedOn": "http://creativecommons.org/publicdomain/mark/1.0/"
 }
 ```
 
@@ -562,7 +566,8 @@ Design decisions:
   "license": {
     "id": "https://example.org/v1/licenses/{id}",
     "type": "CreativeWork",
-    "name": "Creative Commons: publieke domein"
+    "name": "Creative Commons: publieke domein",
+    "isBasedOn": "http://creativecommons.org/publicdomain/mark/1.0/"
   }
 }
 ```

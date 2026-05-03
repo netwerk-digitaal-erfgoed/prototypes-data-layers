@@ -58,9 +58,9 @@ CONSTRUCT {
     ext:license ?mediaObjectLicense ;
     ext:contentUrl ?contentUrl ;
     ext:thumbnailUrl ?thumbnailUrl ;
-    ext:isBasedOn ?isBasedOn .
+    ext:isBasedOn ?isBasedOnIiifImageApi .
 
-  ?isBasedOn a ext:MediaObject ;
+  ?isBasedOnIiifImageApi a ext:MediaObject ;
     ext:encodingFormat ?encodingFormat .
 }
 WHERE {
@@ -167,10 +167,10 @@ WHERE {
   BIND(IRI(CONCAT("https://example.org/", MD5(STR(?originalMediaObjectLicense)))) AS ?mediaObjectLicense)
   BIND("Naamsvermelding-GelijkDelen 4.0 Internationaal"@nl AS ?mediaObjectLicenseName)
 
-  # IIIF support is optional
+  # IIIF Image API support is optional
   OPTIONAL {
-    ?associatedMedia schema:isBasedOn ?isBasedOn .
-    ?isBasedOn schema:encodingFormat ?encodingFormat
+    ?associatedMedia schema:isBasedOn ?isBasedOnIiifImageApi .
+    ?isBasedOnIiifImageApi schema:encodingFormat ?encodingFormat
     FILTER(?encodingFormat = "application/ld+json;profile='http://iiif.io/api/image/3/context.json'")
   }
 }

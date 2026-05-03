@@ -64,9 +64,9 @@ CONSTRUCT {
     ext:license ?mediaObjectLicense ;
     ext:contentUrl ?contentUrl ;
     ext:thumbnailUrl ?thumbnailUrl ;
-    ext:isBasedOn ?isBasedOn .
+    ext:isBasedOn ?isBasedOnIiifImageApi .
 
-  ?isBasedOn a ext:MediaObject ;
+  ?isBasedOnIiifImageApi a ext:MediaObject ;
     ext:encodingFormat ?encodingFormat .
 }
 WHERE {
@@ -181,14 +181,14 @@ WHERE {
   # Missing in the source data - assume it's the same license as the dataset
   BIND(?datasetLicense AS ?mediaObjectLicense)
 
-  # IIIF support is optional
+  # IIIF Image API support is optional
   OPTIONAL {
-    ?associatedMedia schema:isBasedOn ?isBasedOnRaw .
+    ?associatedMedia schema:isBasedOn ?isBasedOnIiifImageApiRaw .
 
     # Remove the trailing "/info.json" - not according to the NDE spec
-    BIND(IRI(STRBEFORE(STR(?isBasedOnRaw), "/info.json")) AS ?isBasedOn)
+    BIND(IRI(STRBEFORE(STR(?isBasedOnIiifImageApiRaw), "/info.json")) AS ?isBasedOnIiifImageApi)
 
-    # Missing in the source data
-    BIND("application/ld+json;profile='http://iiif.io/api/image/3/context.json'" AS ?encodingFormat)
+    ?isBasedOnIiifImageApiRaw schema:encodingFormat ?encodingFormat
+    FILTER(?encodingFormat = "application/ld+json;profile='http://iiif.io/api/image/3/context.json'")
   }
 }
