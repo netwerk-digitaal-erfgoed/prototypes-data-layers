@@ -54,6 +54,7 @@ The API is not yet or not yet fully aligned with existing API specifications, su
 1. [JSON Hypertext Application Language](https://www.ietf.org/archive/id/draft-kelly-json-hal-11.html)
 1. [Activity Streams 2.0](https://www.w3.org/TR/activitystreams-core/)
 1. [JSON:API](https://jsonapi.org/format/)
+1. [IIIF Content Search API](https://iiif.io/api/search/2.0/)
 
 ## Authentication
 
@@ -123,11 +124,11 @@ All endpoints accept and return the same HTTP headers:
 
 ##### URI parameters
 
-| Property | Data type | Cardinality | Description                                      |
-| -------- | --------- | ----------- | ------------------------------------------------ |
-| `q`      | String    | 0 or 1      | Search query, e.g. `lab*`                        |
-| `sort`   | String    | 0 or 1      | Sort property and order, e.g. `dateCreated:desc` |
-| `filter` | String    | 0 or more   | Facet name and value, e.g. `creator:John Doe`    |
+| Property | Data type | Cardinality | Description                                                                                                              |
+| -------- | --------- | ----------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `q`      | String    | 0 or 1      | Search query, e.g. `lab*`                                                                                                |
+| `sort`   | String    | 0 or 1      | Sort property and value, e.g. `dateCreated:desc`                                                                         |
+| `filter` | String    | 0 or more   | Filter property and value, e.g. `creator:John` (by literal) or `creator.id:https://example.org/v1/persons/{id})` (by ID) |
 
 #### Response
 
@@ -171,13 +172,13 @@ All endpoints accept and return the same HTTP headers:
 
 ##### URI parameters
 
-| Property | Data type | Cardinality | Description                                                                                                          |
-| -------- | --------- | ----------- | -------------------------------------------------------------------------------------------------------------------- |
-| `page`   | Number    | 1           | Page index, e.g. `1`                                                                                                 |
-| `size`   | Number    | 0 or 1      | Number of items per page, e.g. `10`                                                                                  |
-| `q`      | String    | 0 or 1      | Search query, e.g. `lab*`                                                                                            |
-| `sort`   | String    | 0 or 1      | Sort property and order, e.g. `dateCreated:desc`                                                                     |
-| `filter` | String    | 0 or more   | Filter name and value, e.g. `creator:John` (by literal) or `creator.id:https://example.org/v1/persons/{id})` (by ID) |
+| Property | Data type | Cardinality | Description                                                                                                              |
+| -------- | --------- | ----------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `page`   | Number    | 1           | Page index, e.g. `1`                                                                                                     |
+| `size`   | Number    | 0 or 1      | Number of items per page, e.g. `10`                                                                                      |
+| `q`      | String    | 0 or 1      | Search query, e.g. `lab*`                                                                                                |
+| `sort`   | String    | 0 or 1      | Sort property and value, e.g. `dateCreated:desc`                                                                         |
+| `filter` | String    | 0 or more   | Filter property and value, e.g. `creator:John` (by literal) or `creator.id:https://example.org/v1/persons/{id})` (by ID) |
 
 #### Response
 
@@ -246,7 +247,7 @@ Design decisions:
 > To discuss:
 >
 > 1. Which facets should be created (e.g. `creator`, `material`, all)?
-> 1. Which text properties should be indexed (e.g. `name`, `description`, all)?
+> 1. Which text properties should be searchable (e.g. `name`, `description`, all)?
 > 1. Support a search request option for denoting the facets that should be returned? Or always return all facets?
 > 1. Support a search request option for denoting the properties that must be searched? Or always search in all indexed properties?
 
