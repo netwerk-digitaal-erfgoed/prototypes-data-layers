@@ -1,4 +1,4 @@
-# Simple query for preparing the data for ingestion into the search index.
+# Query for preparing the data for ingestion into the search index.
 # See also: https://datasetregister.netwerkdigitaalerfgoed.nl/en/datasets/http://data.bibliotheken.nl/id/dataset/rise-alba
 
 PREFIX afn: <http://jena.apache.org/ARQ/function#>
@@ -132,6 +132,7 @@ WHERE {
   ?image a sdo:ImageObject ;
     sdo:contentUrl ?contentUrl ;
     sdo:license ?originalMediaObjectLicense .
+
   BIND(IRI(CONCAT("https://example.org/", MD5(STR(?contentUrl)))) AS ?associatedMediaId)
   BIND(IRI(CONCAT("https://example.org/", MD5(STR(?originalMediaObjectLicense)))) AS ?mediaObjectLicense)
   BIND("Public Domain Mark 1.0 Universeel"@nl AS ?mediaObjectLicenseName)

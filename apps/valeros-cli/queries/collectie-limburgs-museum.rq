@@ -1,4 +1,4 @@
-# Simple query for preparing the data for ingestion into the search index.
+# Query for preparing the data for ingestion into the search index.
 # See also: https://datasetregister.netwerkdigitaalerfgoed.nl/en/datasets/https://n2t.net/ark:/61567/dataset
 
 PREFIX afn: <http://jena.apache.org/ARQ/function#>

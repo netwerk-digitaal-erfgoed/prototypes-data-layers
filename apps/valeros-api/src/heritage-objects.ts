@@ -64,8 +64,9 @@ function buildFilter(filters: string[]) {
       key = key.slice(0, -idSuffix.length); // Remove the `.id` suffix
     }
 
-    // Translate external keys to internal keys,
-    // e.g. from `dateCreated` to `date_created`
+    // Translate external keys to internal keys, e.g.
+    // - from `dateCreated` to `date_created`
+    // - from `contentLocation.id` to `content_location_id`
     facets.forEach((externalName, internalName) => {
       if (key === externalName) {
         internalFilters.push(`${internalName}${nestedKey}:${value}`);

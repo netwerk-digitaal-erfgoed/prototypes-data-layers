@@ -163,9 +163,6 @@ export async function search(input: SearchInput): Promise<SearchResult> {
         "material",
         "subject",
       ],
-      filter_by: opts.filter,
-      exclude_fields: excludeFields,
-      include_fields: includeFields,
       facet_by: [
         "additional_type",
         "content_location",
@@ -177,6 +174,9 @@ export async function search(input: SearchInput): Promise<SearchResult> {
         "publisher",
         "subject",
       ],
+      filter_by: opts.filter,
+      exclude_fields: excludeFields,
+      include_fields: includeFields,
     });
 
   const result = searchResultSchema.parse(response);

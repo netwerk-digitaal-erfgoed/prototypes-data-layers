@@ -1,5 +1,5 @@
-# Simple query for preparing the data for ingestion into the search index.
-# See also: https://collections.uu.nl/datasetregister
+# Query for preparing the data for ingestion into the search index.
+# See also: https://datasetregister.netwerkdigitaalerfgoed.nl/en/datasets/https://collections.uu.nl/dataregister
 
 PREFIX afn: <http://jena.apache.org/ARQ/function#>
 PREFIX ext: <https://example.org/>
