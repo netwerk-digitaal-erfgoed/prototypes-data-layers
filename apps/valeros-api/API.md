@@ -130,6 +130,11 @@ All endpoints accept and return the same HTTP headers:
 | `sort`   | String    | 0 or 1      | Sort property and value, e.g. `dateCreated:desc`                                                                         |
 | `filter` | String    | 0 or more   | Filter property and value, e.g. `creator:John` (by literal) or `creator.id:https://example.org/v1/persons/{id})` (by ID) |
 
+> [!NOTE]
+> To discuss:
+>
+> 1. Is there a spec/standard/convention for modeling the request, notably the URI parameters?
+
 #### Response
 
 ##### Example body
@@ -179,6 +184,11 @@ All endpoints accept and return the same HTTP headers:
 | `q`      | String    | 0 or 1      | Search query, e.g. `lab*`                                                                                                |
 | `sort`   | String    | 0 or 1      | Sort property and value, e.g. `dateCreated:desc`                                                                         |
 | `filter` | String    | 0 or more   | Filter property and value, e.g. `creator:John` (by literal) or `creator.id:https://example.org/v1/persons/{id})` (by ID) |
+
+> [!NOTE]
+> To discuss:
+>
+> 1. Is there a spec/standard/convention for modeling the request, notably the URI parameters?
 
 #### Response
 
