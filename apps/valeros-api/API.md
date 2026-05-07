@@ -262,9 +262,7 @@ Design decisions:
 > 1. Support a search request option for denoting the properties that must be searched? Or always search in all indexed properties?
 
 > [!NOTE]
-> To do:
->
-> 1. Add support for hit highlighting, to the request and the response
+> To do: add support for hit highlighting, to the request and the response
 
 ### Get a single heritage object
 
@@ -310,6 +308,12 @@ Design decisions:
         "id": "https://collections.uu.nl/IIIF/33832",
         "encodingFormat": "application/ld+json;profile='http://iiif.io/api/image/3/context.json'"
       }
+    },
+    // If the heritage object is also available via the IIIF Presentation API:
+    {
+      "id": "https://collections.uu.nl/IIIF/collect/100/manifest.json",
+      "type": ["MediaObject"],
+      "encodingFormat": "application/ld+json;profile='http://iiif.io/api/presentation/3/context.json'"
     }
   ],
   "description": "Zwart-wit foto van een kamer in het fysisch laboratorium te Utrecht, met rechts de amanuensis dhr. Marinus Pieter Filbri, in het midden de toen nog assistent Van Huffel en links de instrumentmaker G. Koolschijn, Utrecht, 1896.",
@@ -377,6 +381,10 @@ Design decisions:
   }
 }
 ```
+
+> [!NOTE]
+> To discuss: how to model the information about the IIIF Presentation API? It currently is, per SCHEMA-AP-NDE, an entry in the `associatedMedia` list,
+> but this may not be ideal for API consumers.
 
 ### Get a single place
 

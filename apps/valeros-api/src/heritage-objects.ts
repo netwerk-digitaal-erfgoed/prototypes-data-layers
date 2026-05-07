@@ -264,21 +264,33 @@ function buildDocumentResponse(baseUri: string, document: Document) {
       type: subject.type,
       name: subject.name,
     })),
-    associatedMedia: document.media_objects?.map((mediaObject) => ({
-      id: `${baseUri}/media-objects/${mediaObject.id}`,
-      type: mediaObject.type,
-      contentUrl: mediaObject.content_url,
-      thumbnailUrl: mediaObject.thumbnail_url,
-      isBasedOn: {
-        id: mediaObject.is_based_on?.id,
-        encodingFormat: mediaObject.is_based_on?.encoding_format,
-      },
-      license: {
-        id: `${baseUri}/licenses/${mediaObject.licenses.id}`,
-        name: mediaObject.licenses.name,
-        isBasedOn: mediaObject.licenses.is_based_on,
-      },
-    })),
+    associatedMedia: document.media_objects?.map((mediaObject) => {
+      // 'Full' media object
+      if (mediaObject.encoding_format === undefined) {
+        return {
+          id: `${baseUri}/media-objects/${mediaObject.id}`,
+          type: mediaObject.type,
+          contentUrl: mediaObject.content_url,
+          thumbnailUrl: mediaObject.thumbnail_url,
+          isBasedOn: {
+            id: mediaObject.is_based_on?.id,
+            encodingFormat: mediaObject.is_based_on?.encoding_format,
+          },
+          license: {
+            id: `${baseUri}/licenses/${mediaObject.licenses?.id}`,
+            name: mediaObject.licenses?.name,
+            isBasedOn: mediaObject.licenses?.is_based_on,
+          },
+        };
+      }
+
+      // IIIF Presentation API manifest
+      return {
+        id: mediaObject.id,
+        type: mediaObject.type,
+        encodingFormat: mediaObject.encoding_format,
+      };
+    }),
     isPartOf: {
       id: `${baseUri}/datasets/${document.datasets.id}`,
       type: document.datasets.type,

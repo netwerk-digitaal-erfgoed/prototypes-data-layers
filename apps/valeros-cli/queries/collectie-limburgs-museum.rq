@@ -24,7 +24,7 @@ CONSTRUCT {
     ext:additionalTypeName ?additionalTypeName ;
     ext:subject ?subjectId ;
     ext:subjectName ?subjectName ;
-    ext:associatedMedia ?associatedMediaId .
+    ext:associatedMedia ?associatedMediaId, ?associatedMediaIiifPresentationApi .
 
   ?dataset a ext:Dataset ;
     ext:name ?datasetName ;
@@ -60,8 +60,11 @@ CONSTRUCT {
     ext:thumbnailUrl ?thumbnailUrl ;
     ext:isBasedOn ?isBasedOnIiifImageApi .
 
-  ?isBasedOnIiifImageApi a ext:MediaObject ;
-    ext:encodingFormat ?encodingFormat .
+  ?isBasedOnIiifImageApi a ext:CreativeWork ;
+    ext:encodingFormat ?iiifImageApiEncodingFormat .
+
+  ?associatedMediaIiifPresentationApi a ext:MediaObject ;
+    ext:encodingFormat ?iiifPresentationApiEncodingFormat .
 }
 WHERE {
   #Examples:
@@ -94,7 +97,7 @@ WHERE {
   BIND("Naamsvermelding 4.0 Internationaal"@nl AS ?datasetLicenseName)
 
   # The dataset first refers to a schema:Role, then to a person,
-  # but this is not according to SCHEMA-AP-NDE
+  # but this is not according to SCHEMA-AP-NDE.
   # Creator is a blank node, not a term IRI. Use the name instead for grouping
   ?cho schema:creator/schema:creator ?creator .
   ?creator schema:name ?originalCreatorName
@@ -151,26 +154,37 @@ WHERE {
     BIND(IRI(CONCAT("https://example.org/", STR(?additionalTypeLocalName))) AS ?additionalTypeType)
   }
 
-  ?cho schema:associatedMedia ?associatedMedia .
-  ?associatedMedia schema:contentUrl ?originalContentUrl ;
-    schema:thumbnailUrl ?originalThumbnailUrl ;
-    schema:license ?originalMediaObjectLicenseAsStr .
-
-  ?associatedMedia a ?associatedMediaNativeType # E.g. `schema:MediaObject`, `schema:ImageObject`
-  BIND(afn:localname(?associatedMediaNativeType) AS ?associatedMediaLocalName) # E.g. `ImageObject`
-  BIND(IRI(CONCAT("https://example.org/", STR(?associatedMediaLocalName))) AS ?associatedMediaType)
-
-  BIND(IRI(STR(?originalContentUrl)) AS ?contentUrl)
-  BIND(IRI(STR(?originalThumbnailUrl)) AS ?thumbnailUrl)
-  BIND(IRI(STR(?originalMediaObjectLicenseAsStr)) AS ?originalMediaObjectLicense)
-  BIND(IRI(CONCAT("https://example.org/", MD5(STR(?originalContentUrl)))) AS ?associatedMediaId)
-  BIND(IRI(CONCAT("https://example.org/", MD5(STR(?originalMediaObjectLicense)))) AS ?mediaObjectLicense)
-  BIND("Naamsvermelding-GelijkDelen 4.0 Internationaal"@nl AS ?mediaObjectLicenseName)
-
-  # IIIF Image API support is optional
   OPTIONAL {
-    ?associatedMedia schema:isBasedOn ?isBasedOnIiifImageApi .
-    ?isBasedOnIiifImageApi schema:encodingFormat ?encodingFormat
-    FILTER(?encodingFormat = "application/ld+json;profile='http://iiif.io/api/image/3/context.json'")
+    ?cho schema:associatedMedia ?associatedMedia .
+    ?associatedMedia schema:contentUrl ?originalContentUrl ;
+      schema:thumbnailUrl ?originalThumbnailUrl ;
+      schema:license ?originalMediaObjectLicenseAsStr .
+
+    ?associatedMedia a ?associatedMediaNativeType # E.g. `schema:MediaObject`, `schema:ImageObject`
+    BIND(afn:localname(?associatedMediaNativeType) AS ?associatedMediaLocalName) # E.g. `ImageObject`
+    BIND(IRI(CONCAT("https://example.org/", STR(?associatedMediaLocalName))) AS ?associatedMediaType)
+
+    BIND(IRI(STR(?originalContentUrl)) AS ?contentUrl)
+    BIND(IRI(STR(?originalThumbnailUrl)) AS ?thumbnailUrl)
+    BIND(IRI(STR(?originalMediaObjectLicenseAsStr)) AS ?originalMediaObjectLicense)
+    BIND(IRI(CONCAT("https://example.org/", MD5(STR(?originalContentUrl)))) AS ?associatedMediaId)
+    BIND(IRI(CONCAT("https://example.org/", MD5(STR(?originalMediaObjectLicense)))) AS ?mediaObjectLicense)
+    BIND("Naamsvermelding-GelijkDelen 4.0 Internationaal"@nl AS ?mediaObjectLicenseName)
+
+    # IIIF Image API support is optional
+    OPTIONAL {
+      ?associatedMedia schema:isBasedOn ?isBasedOnIiifImageApi .
+      ?isBasedOnIiifImageApi schema:encodingFormat ?iiifImageApiEncodingFormat
+      FILTER(?iiifImageApiEncodingFormat = "application/ld+json;profile='http://iiif.io/api/image/3/context.json'")
+    }
+  }
+
+  # IIIF Presentation API support is optional.
+  # Be aware of the `schema:isBasedOn` jump, which is not according to SCHEMA-AP-NDE
+  OPTIONAL {
+    ?cho schema:associatedMedia ?associatedMediaIiifPresentationApi .
+    ?associatedMediaIiifPresentationApi schema:isBasedOn ?isBasedOnIiifPresentationApi .
+    ?isBasedOnIiifPresentationApi schema:encodingFormat ?iiifPresentationApiEncodingFormat
+    FILTER(?iiifPresentationApiEncodingFormat = "application/ld+json;profile='http://iiif.io/api/presentation/3/context.json'")
   }
 }

@@ -174,32 +174,35 @@ export type Material = {
   name: string;
 };
 
+// Both for 'full' media objects and for references to the IIIF Presentation API
 export const mediaObjectsSchema = {
   name: "media_objects",
   enable_nested_fields: true,
   fields: [
     { name: "type", type: "string[]" },
-    { name: "content_url", type: "string" },
-    { name: "thumbnail_url", type: "string" },
-    { name: "license_id", type: "string", reference: "licenses.id" },
+    { name: "content_url", type: "string", optional: true },
+    { name: "thumbnail_url", type: "string", optional: true },
+    { name: "license_id", type: "string", reference: "licenses.id", optional: true },
     { name: "is_based_on", type: "object", optional: true },
     { name: "is_based_on.id", type: "string", optional: true },
     { name: "is_based_on.type", type: "string", optional: true },
     { name: "is_based_on.encoding_format", type: "string", optional: true },
+    { name: "encoding_format", type: "string", optional: true },
   ],
 } as const satisfies CollectionCreateSchema;
 
 export type MediaObject = {
   id: string;
   type: string[];
-  content_url: string;
-  thumbnail_url: string;
-  license_id: string;
+  content_url?: string;
+  thumbnail_url?: string;
+  license_id?: string;
   is_based_on?: {
     id: string;
     type: string;
     encoding_format: string;
   };
+  encoding_format?: string;
 };
 
 export const publishersSchema = {

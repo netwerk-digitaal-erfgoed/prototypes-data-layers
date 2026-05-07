@@ -137,7 +137,13 @@ const heritageObjectJsonLdSchema = z
     description: data["ext:description"]?.join("; "), // Merge into one string
     additional_type: data["ext:additionalTypeName"],
     additional_type_id: data["ext:additionalType"]?.map((id) => createIdFrom(id)),
-    media_object_id: data["ext:associatedMedia"]?.map((id) => createIdFrom(id)),
+    media_object_id: data["ext:associatedMedia"]?.map((id) => {
+      // Hack: if the ID starts with `http` it's an IRI of a IIIF manifest file
+      if (id.startsWith("http")) {
+        return id; // Return the ID as-is
+      }
+      return createIdFrom(id);
+    }),
     content_location: data["ext:contentLocationName"],
     content_location_id: data["ext:contentLocation"]?.map((id) => createIdFrom(id)),
     creator: data["ext:creatorName"],
@@ -186,15 +192,15 @@ const materialJsonLdSchema = z
     name: data["ext:name"]?.join("; "), // Merge into one string
   }));
 
-const mediaObjectJsonLdSchema = z
+const fullMediaObjectJsonLdSchema = z
   .object({
     "@id": z.string(),
-    // Remove prefix, e.g. `ext:MediaObject` to `MediaObject`
     "@type": z.preprocess(
       (value) => (Array.isArray(value) ? value : [value]),
       z.array(
         z
           .enum(["ext:MediaObject", "ext:ImageObject"])
+          // Remove prefix, e.g. `ext:MediaObject` to `MediaObject`
           .transform((data) => data.replace(/^.*:/, "")),
       ),
     ),
@@ -212,17 +218,44 @@ const mediaObjectJsonLdSchema = z
       license_id: createIdFrom(data["ext:license"]),
     };
 
-    // IIIF support is optional
+    // IIIF Image API support is optional
     if (data["ext:isBasedOn"]) {
       mediaObject.is_based_on = {
         id: data["ext:isBasedOn"],
-        type: "CreativeWork",
+        type: "CreativeWork", // TBD: correct? Necessary?
         encoding_format: "application/ld+json;profile='http://iiif.io/api/image/3/context.json'",
       };
     }
 
     return mediaObject;
   });
+
+const iiifPresentationApiMediaObjectJsonLdSchema = z
+  .object({
+    "@id": z.string(),
+    "@type": z.preprocess(
+      (value) => (Array.isArray(value) ? value : [value]),
+      z.array(
+        z
+          .enum(["ext:MediaObject"])
+          // Remove prefix, e.g. `ext:MediaObject` to `MediaObject`
+          .transform((data) => data.replace(/^.*:/, "")),
+      ),
+    ),
+    "ext:encodingFormat": z.literal(
+      "application/ld+json;profile='http://iiif.io/api/presentation/3/context.json'",
+    ),
+  })
+  .transform((data) => ({
+    id: data["@id"], // Original link to the manifest
+    type: data["@type"],
+    encoding_format: data["ext:encodingFormat"],
+  }));
+
+const mediaObjectJsonLdSchema = z.union([
+  fullMediaObjectJsonLdSchema,
+  iiifPresentationApiMediaObjectJsonLdSchema,
+]);
 
 const publisherJsonLdSchema = z
   .object({
