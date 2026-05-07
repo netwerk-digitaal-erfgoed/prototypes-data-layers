@@ -28,7 +28,7 @@ CONSTRUCT {
     ext:contentLocationName ?contentLocationName ;
     ext:subject ?subjectId ;
     ext:subjectName ?subjectName ;
-    ext:associatedMedia ?associatedMediaId .
+    ext:associatedMedia ?associatedMediaId, ?associatedMediaIiifPresentationApi .
 
   ?dataset a ext:Dataset ;
     ext:name ?datasetName ;
@@ -66,8 +66,11 @@ CONSTRUCT {
     ext:thumbnailUrl ?thumbnailUrl ;
     ext:isBasedOn ?isBasedOnIiifImageApi .
 
-  ?isBasedOnIiifImageApi a ext:MediaObject ;
-    ext:encodingFormat ?encodingFormat .
+  ?isBasedOnIiifImageApi a ext:CreativeWork ;
+    ext:encodingFormat ?iiifImageApiEncodingFormat .
+
+  ?associatedMediaIiifPresentationApi a ext:MediaObject ;
+    ext:encodingFormat ?iiifPresentationApiEncodingFormat .
 }
 WHERE {
   #Examples:
@@ -166,29 +169,38 @@ WHERE {
     BIND(IRI(CONCAT("https://example.org/", STR(?subjectLocalName))) AS ?subjectType)
   }
 
-  ?cho schema:associatedMedia ?associatedMedia .
-  ?associatedMedia schema:contentUrl ?contentUrlAsString ;
-    schema:thumbnailUrl ?thumbnailUrlAsString .
-
-  ?associatedMedia a ?associatedMediaNativeType # E.g. `schema:MediaObject`, `schema:ImageObject`
-  BIND(afn:localname(?associatedMediaNativeType) AS ?associatedMediaLocalName) # E.g. `ImageObject`
-  BIND(IRI(CONCAT("https://example.org/", STR(?associatedMediaLocalName))) AS ?associatedMediaType)
-
-  BIND(IRI(?contentUrlAsString) AS ?contentUrl)
-  BIND(IRI(?thumbnailUrlAsString) AS ?thumbnailUrl)
-  BIND(IRI(CONCAT("https://example.org/", MD5(STR(?contentUrl)))) AS ?associatedMediaId)
-
-  # Missing in the source data - assume it's the same license as the dataset
-  BIND(?datasetLicense AS ?mediaObjectLicense)
-
-  # IIIF Image API support is optional
   OPTIONAL {
-    ?associatedMedia schema:isBasedOn ?isBasedOnIiifImageApiRaw .
+    ?cho schema:associatedMedia ?associatedMedia .
+    ?associatedMedia schema:contentUrl ?contentUrlAsString ;
+      schema:thumbnailUrl ?thumbnailUrlAsString .
 
-    # Remove the trailing "/info.json" - not according to the NDE spec
-    BIND(IRI(STRBEFORE(STR(?isBasedOnIiifImageApiRaw), "/info.json")) AS ?isBasedOnIiifImageApi)
+    ?associatedMedia a ?associatedMediaNativeType # E.g. `schema:MediaObject`, `schema:ImageObject`
+    BIND(afn:localname(?associatedMediaNativeType) AS ?associatedMediaLocalName) # E.g. `ImageObject`
+    BIND(IRI(CONCAT("https://example.org/", STR(?associatedMediaLocalName))) AS ?associatedMediaType)
 
-    ?isBasedOnIiifImageApiRaw schema:encodingFormat ?encodingFormat
-    FILTER(?encodingFormat = "application/ld+json;profile='http://iiif.io/api/image/3/context.json'")
+    BIND(IRI(?contentUrlAsString) AS ?contentUrl)
+    BIND(IRI(?thumbnailUrlAsString) AS ?thumbnailUrl)
+    BIND(IRI(CONCAT("https://example.org/", MD5(STR(?contentUrl)))) AS ?associatedMediaId)
+
+    # Missing in the source data - assume it's the same license as the dataset
+    BIND(?datasetLicense AS ?mediaObjectLicense)
+
+    # IIIF Image API support is optional
+    OPTIONAL {
+      ?associatedMedia schema:isBasedOn ?isBasedOnIiifImageApiRaw .
+
+      # Remove the trailing "/info.json" - not according to the NDE spec
+      BIND(IRI(STRBEFORE(STR(?isBasedOnIiifImageApiRaw), "/info.json")) AS ?isBasedOnIiifImageApi)
+
+      ?isBasedOnIiifImageApiRaw schema:encodingFormat ?iiifImageApiEncodingFormat
+      FILTER(?iiifImageApiEncodingFormat = "application/ld+json;profile='http://iiif.io/api/image/3/context.json'")
+    }
+  }
+
+  # IIIF Presentation API support is optional
+  OPTIONAL {
+    ?cho schema:associatedMedia ?associatedMediaIiifPresentationApi .
+    ?associatedMediaIiifPresentationApi schema:encodingFormat ?iiifPresentationApiEncodingFormat
+    FILTER(?iiifPresentationApiEncodingFormat = "application/ld+json;profile='http://iiif.io/api/presentation/3/context.json'")
   }
 }

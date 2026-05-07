@@ -80,12 +80,13 @@ const documentSchema = z.object({
   }),
   media_objects: z
     .array(
+      // Both for 'full' media objects and for references to the IIIF Presentation API
       z.object({
         id: z.string(),
         type: z.array(z.string()),
-        content_url: z.string(),
-        thumbnail_url: z.string(),
-        licenses: licenseSchema,
+        content_url: z.string().optional(),
+        thumbnail_url: z.string().optional(),
+        licenses: licenseSchema.optional(),
         is_based_on: z
           .object({
             id: z.string(),
@@ -93,6 +94,7 @@ const documentSchema = z.object({
             encoding_format: z.string(),
           })
           .optional(),
+        encoding_format: z.string().optional(),
       }),
     )
     .optional(),

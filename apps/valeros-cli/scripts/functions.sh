@@ -98,7 +98,7 @@ createIngestFile() {
 
   local outputExtension="${mainOutputFile##*.}" # E.g. `jsonld`
 
-  # Convert Turtle to output format
+  # Convert temp format to output format
   riot --output $outputExtension "${tempMainOutputFile}" > "${mainOutputFile}"
 
   # Remove all temporary work files
