@@ -1,5 +1,5 @@
 import {
-  additionalTypeSchema,
+  additionalTypesSchema,
   contentLocationsSchema,
   creatorsSchema,
   datasetsSchema,
@@ -10,10 +10,11 @@ import {
   mediaObjectsSchema,
   publishersSchema,
   subjectsSchema,
+  termsSchema,
 } from "@repo/typesense/schemas";
 
 export const collectionSchemas = [
-  additionalTypeSchema,
+  additionalTypesSchema,
   contentLocationsSchema,
   creatorsSchema,
   datasetsSchema,
@@ -24,4 +25,5 @@ export const collectionSchemas = [
   mediaObjectsSchema,
   publishersSchema,
   subjectsSchema,
+  termsSchema,
 ];
