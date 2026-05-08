@@ -22,6 +22,8 @@
   - [Get a single occupation](#get-a-single-occupation)
   - [Get a single media object](#get-a-single-media-object)
   - [Get a single license](#get-a-single-license)
+  - [Get the terms collection](#get-the-terms-collection)
+  - [List terms in a paged collection](#list-terms-in-a-paged-collection)
   - [Get a single term](#get-a-single-term)
   - [Get a single dataset](#get-a-single-dataset)
   - [Get the JSON-LD context](#get-the-json-ld-context)
