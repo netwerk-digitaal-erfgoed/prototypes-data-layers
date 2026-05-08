@@ -126,7 +126,7 @@ All endpoints accept and return the same HTTP headers:
 
 | Property | Data type | Cardinality | Description                                                                                                              |
 | -------- | --------- | ----------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `q`      | String    | 0 or 1      | Search query, e.g. `lab*`                                                                                                |
+| `q`      | String    | 0 or 1      | Search query, e.g. `lab`                                                                                                 |
 | `sort`   | String    | 0 or 1      | Sort property and value, e.g. `dateCreated:desc`                                                                         |
 | `filter` | String    | 0 or more   | Filter property and value, e.g. `creator:John` (by literal) or `creator.id:https://example.org/v1/persons/{id})` (by ID) |
 
@@ -181,7 +181,7 @@ All endpoints accept and return the same HTTP headers:
 | -------- | --------- | ----------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `page`   | Number    | 1           | Page index, e.g. `1`                                                                                                     |
 | `size`   | Number    | 0 or 1      | Number of items per page, e.g. `10`                                                                                      |
-| `q`      | String    | 0 or 1      | Search query, e.g. `lab*`                                                                                                |
+| `q`      | String    | 0 or 1      | Search query, e.g. `lab`                                                                                                 |
 | `sort`   | String    | 0 or 1      | Sort property and value, e.g. `dateCreated:desc`                                                                         |
 | `filter` | String    | 0 or more   | Filter property and value, e.g. `creator:John` (by literal) or `creator.id:https://example.org/v1/persons/{id})` (by ID) |
 
@@ -196,10 +196,10 @@ All endpoints accept and return the same HTTP headers:
 
 ```json
 {
-  "id": "https://example.org/v1/heritage-objects/page/2?size=10&q=lab*&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
+  "id": "https://example.org/v1/heritage-objects/page/2?size=10&q=lab&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
   "type": "OrderedCollectionPage",
-  "next": "https://example.org/v1/heritage-objects/page/3?size=10&q=lab*&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
-  "prev": "https://example.org/v1/heritage-objects/page/1?size=10&q=lab*&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
+  "next": "https://example.org/v1/heritage-objects/page/3?size=10&q=lab&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
+  "prev": "https://example.org/v1/heritage-objects/page/1?size=10&q=lab&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
   "orderedItems": [
     {
       "id": "https://example.org/v1/heritage-objects/{id}",
@@ -217,11 +217,11 @@ All endpoints accept and return the same HTTP headers:
     // ... other items
   ],
   "partOf": {
-    "id": "https://example.org/v1/heritage-objects?q=lab*&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
+    "id": "https://example.org/v1/heritage-objects?q=lab&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
     "type": "OrderedCollection",
     "totalItems": 195,
-    "first": "https://example.org/v1/heritage-objects/page/1?size=10&q=lab*&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
-    "last": "https://example.org/v1/heritage-objects/page/20?size=10&q=lab*&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
+    "first": "https://example.org/v1/heritage-objects/page/1?size=10&q=lab&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
+    "last": "https://example.org/v1/heritage-objects/page/20?size=10&q=lab&sort=dateCreated%3Adesc&filter=creator%3AJohn%20Doe",
     "facets": [
       {
         "type": "OrderedCollection",
@@ -541,6 +541,87 @@ Design decisions:
   "type": "CreativeWork",
   "name": "Creative Commons: publieke domein",
   "isBasedOn": "http://creativecommons.org/publicdomain/mark/1.0/"
+}
+```
+
+### Get the terms collection
+
+#### Request
+
+`GET /v1/terms`
+
+##### URI parameters
+
+| Property | Data type | Cardinality | Description                                             |
+| -------- | --------- | ----------- | ------------------------------------------------------- |
+| `q`      | String    | 0 or 1      | Search query, e.g. `lab`                                |
+| `sort`   | String    | 0 or 1      | Sort property and value, e.g. `name:asc` or `name:desc` |
+
+> [!NOTE]
+> To discuss:
+>
+> 1. Is there a spec/standard/convention for modeling the request, notably the URI parameters?
+
+#### Response
+
+##### Example body
+
+```json
+{
+  "id": "https://example.org/v1/terms",
+  "type": "OrderedCollection",
+  "totalItems": 207,
+  "first": "https://example.org/v1/terms/page/1?size=10",
+  "last": "https://example.org/v1/terms/page/21?size=10"
+}
+```
+
+### List terms in a paged collection
+
+#### Request
+
+`GET /v1/terms/page/{page}?size={size}&q={q}&sort={sort}`
+
+##### URI parameters
+
+| Property | Data type | Cardinality | Description                                             |
+| -------- | --------- | ----------- | ------------------------------------------------------- |
+| `page`   | Number    | 1           | Page index, e.g. `1`                                    |
+| `size`   | Number    | 0 or 1      | Number of items per page, e.g. `10`                     |
+| `q`      | String    | 0 or 1      | Search query, e.g. `lab`                                |
+| `sort`   | String    | 0 or 1      | Sort property and value, e.g. `name:asc` or `name:desc` |
+
+> [!NOTE]
+> To discuss:
+>
+> 1. Is there a spec/standard/convention for modeling the request, notably the URI parameters?
+
+#### Response
+
+##### Example body
+
+```json
+{
+  "id": "https://example.org/v1/terms/page/2?size=10&q=lab&sort=name%3Aasc",
+  "type": "OrderedCollectionPage",
+  "next": "https://example.org/v1/terms/page/3?size=10&q=lab&sort=name%3Aasc",
+  "prev": "https://example.org/v1/terms/page/1?size=10&q=lab&sort=name%3Aasc",
+  "orderedItems": [
+    {
+      "id": "https://example.org/v1/terms/{id}",
+      "type": "DefinedTerm",
+      "name": "fotoafdruk zwart-wit"
+      // ... other properties (see the response of endpoint "Get a single term")
+    }
+    // ... other items
+  ],
+  "partOf": {
+    "id": "https://example.org/v1/terms?q=lab&sort=name%3Adesc",
+    "type": "OrderedCollection",
+    "totalItems": 207,
+    "first": "https://example.org/v1/terms/page/1?size=10&q=lab&sort=name%3Aasc",
+    "last": "https://example.org/v1/terms/page/20?size=10&q=lab&sort=name%3Aasc"
+  }
 }
 ```
 

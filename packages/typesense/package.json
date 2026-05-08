@@ -6,6 +6,7 @@
     "./client": "./dist/client.mjs",
     "./heritage-objects": "./dist/heritage-objects.mjs",
     "./schemas": "./dist/schemas.mjs",
+    "./terms": "./dist/terms.mjs",
     "./*": "./*"
   },
   "scripts": {

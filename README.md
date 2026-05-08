@@ -55,24 +55,36 @@ Get the heritage objects on the first page of the collection:
 
 Find the heritage objects that match query `nederland`:
 
-    curl http://localhost:3000/v1/heritage-objects/page/1?size=10&q=nederland
+    curl http://localhost:3000/v1/heritage-objects/page/1?q=nederland
 
 Find the heritage objects that match query `onderwijs` and that are about location `Berlijn`:
 
-    curl http://localhost:3000/v1/heritage-objects/page/1?size=10&q=onderwijs&filter=contentLocation%3ABerlijn
+    curl http://localhost:3000/v1/heritage-objects/page/1?q=onderwijs&filter=contentLocation%3ABerlijn
 
 Find the heritage objects that match query `instrument`, that are about location `Nederland` and that are of genre `natuurkunde`:
 
-    curl http://localhost:3000/v1/heritage-objects/page/1?size=10&q=instrument&filter=contentLocation%3ANederland&filter=genre%3Anatuurkunde
+    curl http://localhost:3000/v1/heritage-objects/page/1?q=instrument&filter=contentLocation%3ANederland&filter=genre%3Anatuurkunde
 
-Find the heritage objects that match genre name `natuurlijke historie` (mind the backticks, for escaping):
+Find the heritage objects that match terms with name `natuurlijke historie` (mind the backticks, for escaping) in field "genre":
 
-    curl http://localhost:3000/v1/heritage-objects/page/1?size=10&filter=genre%3A%3D%60natuurlijke%20historie%60
+    curl http://localhost:3000/v1/heritage-objects/page/1?filter=genre%3A%3D%60natuurlijke%20historie%60
 
-Find the heritage objects that match genre ID `http://localhost:3000/v1/terms/a5b066b96fac9f0e71534f1a7811a24a` (name: "natuurlijke historie"):
+Find the heritage objects that match the term with ID `http://localhost:3000/v1/terms/a5b066b96fac9f0e71534f1a7811a24a` (name: "natuurlijke historie") in field "genre":
 
-    curl http://localhost:3000/v1/heritage-objects/page/1?size=10&filter=genre.id%3Ahttp%3A%2F%2Flocalhost%3A3000%2Fv1%2Fterms%2F26abb4f2d20483c594b6ec695240071e
+    curl http://localhost:3000/v1/heritage-objects/page/1?filter=genre.id%3Ahttp%3A%2F%2Flocalhost%3A3000%2Fv1%2Fterms%2F26abb4f2d20483c594b6ec695240071e
 
 Get a specific heritage object:
 
     curl http://localhost:3000/v1/heritage-objects/f3cb201d0d6068c4c959f352b49a7587
+
+Get the terms collection:
+
+    curl http://localhost:3000/v1/terms
+
+Get the terms on the first page of the collection:
+
+    curl http://localhost:3000/v1/terms/page/1
+
+Find the terms that match query `werk`:
+
+    curl http://localhost:3000/v1/terms/page/1?q=werk

@@ -1,6 +1,6 @@
 import { CollectionCreateSchema } from "typesense";
 
-export const additionalTypeSchema = {
+export const additionalTypesSchema = {
   name: "additional_types",
   fields: [
     { name: "type", type: "string" },
@@ -228,6 +228,29 @@ export const subjectsSchema = {
 } as const satisfies CollectionCreateSchema;
 
 export type Subject = {
+  id: string;
+  type: string;
+  name: string;
+};
+
+export const termsSchema = {
+  name: "terms",
+  fields: [
+    { name: "type", type: "string" },
+    {
+      name: "name",
+      type: "string",
+      // Enable infix search to find documents that contains a piece of text
+      // that appears in the middle of a word: `werk` => `aardewerk`, `mijnwerker`.
+      // TBD: apply this to other or all searches as well?
+      infix: true,
+      // Sorting on a string field requires the construction of a separate index
+      sort: true,
+    },
+  ],
+} as const satisfies CollectionCreateSchema;
+
+export type Term = {
   id: string;
   type: string;
   name: string;

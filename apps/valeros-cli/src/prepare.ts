@@ -284,6 +284,18 @@ const subjectJsonLdSchema = z
     name: data["ext:name"]?.join("; "), // Merge into one string
   }));
 
+const termJsonLdSchema = z
+  .object({
+    "@id": z.string(),
+    "@type": z.literal("ext:DefinedTerm"),
+    "ext:name": valueSchemaMultiple,
+  })
+  .transform((data) => ({
+    id: createIdFrom(data["@id"]),
+    type: "DefinedTerm",
+    name: data["ext:name"]?.join("; "), // Merge into one string
+  }));
+
 const toJsonLinesFileInputSchema = z.object({
   inputFile: z.string(),
   outputFile: z.string(),
@@ -381,6 +393,10 @@ export async function prepare(input: PrepareInput) {
     {
       name: "01.subjects.jsonl",
       schema: subjectJsonLdSchema,
+    },
+    {
+      name: "01.terms.jsonl",
+      schema: termJsonLdSchema,
     },
   ];
 
