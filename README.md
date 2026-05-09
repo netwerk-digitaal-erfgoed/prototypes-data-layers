@@ -69,9 +69,13 @@ Find the heritage objects that match terms with name `natuurlijke historie` (min
 
     curl http://localhost:3000/v1/heritage-objects/page/1?filter=genre%3A%3D%60natuurlijke%20historie%60
 
-Find the heritage objects that match the term with ID `http://localhost:3000/v1/terms/a5b066b96fac9f0e71534f1a7811a24a` (name: "natuurlijke historie") in field "genre":
+Find the heritage objects that match the term with ID `http://localhost:3000/v1/terms/a5b066b96fac9f0e71534f1a7811a24a` in field "genre":
 
     curl http://localhost:3000/v1/heritage-objects/page/1?filter=genre.id%3Ahttp%3A%2F%2Flocalhost%3A3000%2Fv1%2Fterms%2F26abb4f2d20483c594b6ec695240071e
+
+Find the heritage objects that match the term with ID `http://localhost:3000/v1/terms/a5b066b96fac9f0e71534f1a7811a24a` regardless of field ("*"):
+
+    curl http://localhost:3000/v1/heritage-objects/page/1?filter=%2A.id%3Ahttp%3A%2F%2Flocalhost%3A3000%2Fv1%2Fterms%2F26abb4f2d20483c594b6ec695240071e
 
 Get a specific heritage object:
 

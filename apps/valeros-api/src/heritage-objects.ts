@@ -6,7 +6,7 @@ import { Env } from "./env.js";
 
 const app = new Hono<Env>();
 
-// Internal search index names to external API names
+// Internal search field names to external API names
 const facets = new Map([
   ["additional_type", "additionalType"],
   ["content_location", "contentLocation"],
@@ -21,15 +21,19 @@ const facets = new Map([
 
 const idSuffix = ".id";
 
+// List of the search fields that hold IDs, e.g. of terms.
+// These fields always end with `_id`
+const identityFieldNames = Array.from(facets.keys()).map((key) => `${key}_id`);
+
 function buildFilter(filters: string[]) {
   const internalFilters: string[] = [];
 
   for (const filter of filters) {
     // Keep only filters of format `key:value`, e.g.
-    // - `dateCreated:=1900`
     // - `dateCreated:>1900`
     // - `creator:John`
     // - `creator.id:https://example.org/resource/1234`
+    // - `*.id:https://example.org/resource/1234`
     const separatorPosition = filter.indexOf(":");
     if (separatorPosition === -1) {
       continue; // Invalid filter; ignore
@@ -37,13 +41,13 @@ function buildFilter(filters: string[]) {
 
     let key = filter.slice(0, separatorPosition);
     let value = filter.slice(separatorPosition + 1);
-    if (key.length === 0 || value.length === 0) {
+    if (value.length === 0) {
       continue; // Empty - ignore
     }
 
     let nestedKey = "";
 
-    // Special case: if a key ends with `.id` (e.g. `creator.id`),
+    // Special case: if a key ends with `.id` (e.g. `creator.id` or `*.id`),
     // an 'identity filter' is given and we must filter resources
     // based on the given URI (e.g. `https://example.org/resource/1234`)
     const hasNestedIdKey = key.endsWith(idSuffix);
@@ -58,6 +62,15 @@ function buildFilter(filters: string[]) {
       value = value.slice(slashPosition + 1);
       if (value.length === 0) {
         continue; // No ID found - ignore
+      }
+
+      // Special case: filter by *all* identity fields, e.g.
+      // `(field1_id:xxx || field2_id:xxx || field3_id:xxx)`
+      if (key === `*${idSuffix}`) {
+        const identityFilters = identityFieldNames.map((fieldName) => `${fieldName}:${value}`);
+        const identityFilter = `(${identityFilters.join(" || ")})`;
+        internalFilters.push(identityFilter);
+        continue;
       }
 
       nestedKey = "_id";
@@ -278,6 +291,7 @@ function buildDocumentResponse(baseUri: string, document: Document) {
           },
           license: {
             id: `${baseUri}/licenses/${mediaObject.licenses?.id}`,
+            type: mediaObject.licenses?.type,
             name: mediaObject.licenses?.name,
             isBasedOn: mediaObject.licenses?.is_based_on,
           },
@@ -304,6 +318,7 @@ function buildDocumentResponse(baseUri: string, document: Document) {
         id: `${baseUri}/licenses/${document.licenses.id}`,
         type: document.licenses.type,
         name: document.licenses.name,
+        isBasedOn: document.licenses?.is_based_on,
       },
     },
     isBasedOn: document.is_based_on,
