@@ -179,13 +179,13 @@ All endpoints accept and return the same HTTP headers:
 
 ##### URI parameters
 
-| Property | Data type | Cardinality | Description                                                                                                              |
-| -------- | --------- | ----------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `page`   | Number    | 1           | Page index, e.g. `1`                                                                                                     |
-| `size`   | Number    | 0 or 1      | Number of items per page, e.g. `10`                                                                                      |
-| `q`      | String    | 0 or 1      | Search query, e.g. `lab`                                                                                                 |
-| `sort`   | String    | 0 or 1      | Sort property and value, e.g. `dateCreated:desc`                                                                         |
-| `filter` | String    | 0 or more   | Filter property and value, e.g. `creator:John` (by literal) or `creator.id:https://example.org/v1/persons/{id})` (by ID) |
+| Property | Data type | Cardinality | Description                                                                                                                                                                                    |
+| -------- | --------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `page`   | Number    | 1           | Page index, e.g. `1`                                                                                                                                                                           |
+| `size`   | Number    | 0 or 1      | Number of items per page, e.g. `10`                                                                                                                                                            |
+| `q`      | String    | 0 or 1      | Search query, e.g. `lab`                                                                                                                                                                       |
+| `sort`   | String    | 0 or 1      | Sort property and value, e.g. `dateCreated:desc`                                                                                                                                               |
+| `filter` | String    | 0 or more   | Filter property and value, e.g. `creator:John` (by literal), `creator.id:https://example.org/v1/persons/{id}` (by ID) or `*.id:https://example.org/v1/persons/{id}` (by ID for all properties) |
 
 > [!NOTE]
 > To discuss:
@@ -262,6 +262,7 @@ Design decisions:
 > 1. Which text properties should be searchable (e.g. `name`, `description`, all)?
 > 1. Support a search request option for denoting the facets that should be returned? Or always return all facets?
 > 1. Support a search request option for denoting the properties that must be searched? Or always search in all indexed properties?
+> 1. Should facets be literals (e.g. "Jan de Vries", "katoen") or IDs (e.g. "https://example.org/terms/1234")? If they're literals, all facets with the same values are grouped (e.g. all persons named "Jan de Vries" are put into one facet) - desirable? If they're IDs, all facets have distinct/unique values and are not grouped, even though the names of the persons can be identical - desirable?
 
 > [!NOTE]
 > To do: add support for hit highlighting, to the request and the response
@@ -301,6 +302,7 @@ Design decisions:
       "type": ["MediaObject", "ImageObject"],
       "license": {
         "id": "https://example.org/v1/licenses/{id}",
+        "type": "CreativeWork",
         "name": "Creative Commons: publieke domein",
         "isBasedOn": "http://creativecommons.org/publicdomain/mark/1.0/"
       },
