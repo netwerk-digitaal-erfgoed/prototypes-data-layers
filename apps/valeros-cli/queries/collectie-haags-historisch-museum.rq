@@ -1,5 +1,5 @@
 # Query for preparing the data for ingestion into the search index.
-# See also: https://datasetregister.netwerkdigitaalerfgoed.nl/en/datasets/https://n2t.net/ark:/61567/dataset
+# See also: https://datasetregister.netwerkdigitaalerfgoed.nl/en/datasets/https://n2t.net/ark:/46860/dataset
 
 PREFIX afn: <http://jena.apache.org/ARQ/function#>
 PREFIX ext: <https://example.org/>
@@ -68,7 +68,7 @@ CONSTRUCT {
 }
 WHERE {
   #Examples:
-  #BIND(<https://n2t.net/ark:/61567/f9a62fb0322d4b679f32a2aa1e277f17> AS ?cho)
+  #BIND(<https://n2t.net/ark:/46860/B7022601277A4CF8956C77364FEBFCC7> AS ?cho)
 
   ?cho a ?nativeChoType .
   BIND(afn:localname(?nativeChoType) AS ?choTypeLocalName) # E.g. `CreativeWork`
@@ -78,7 +78,7 @@ WHERE {
   BIND(STRLANG(?originalName, "nl") AS ?name) # Missing in the source data
 
   # The dataset does not have a `schema:isPartOf` property for the dataset
-  BIND(<https://n2t.net/ark:/61567/dataset> AS ?originalDataset)
+  BIND(<https://n2t.net/ark:/46860/dataset> AS ?originalDataset)
 
   # Normally this info comes from the NDE Dataset Register
   ?originalDataset a schema:Dataset .
@@ -97,8 +97,7 @@ WHERE {
   BIND("Naamsvermelding 4.0 Internationaal"@nl AS ?datasetLicenseName)
 
   # The dataset first refers to a schema:Role, then to a person,
-  # but this is not according to SCHEMA-AP-NDE.
-  # Creator is a blank node, not a term IRI. Use the name instead for grouping
+  # but this is not according to SCHEMA-AP-NDE
   ?cho schema:creator/schema:creator ?creator .
   ?creator schema:name ?originalCreatorName
   BIND(STRLANG(?originalCreatorName, "nl") AS ?creatorName) # Missing in the source data
