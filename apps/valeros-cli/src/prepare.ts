@@ -183,12 +183,22 @@ const licenseJsonLdSchema = z
 const materialJsonLdSchema = z
   .object({
     "@id": z.string(),
-    "@type": z.literal("ext:DefinedTerm"),
+    // The `@type` must be a string or an array of strings;
+    // it must contain at least the value `ext:DefinedTerm`
+    "@type": z
+      .preprocess(
+        (value) => (Array.isArray(value) ? value : [value]),
+        z.array(
+          // Remove prefix, e.g. `ext:DefinedTerm` to `DefinedTerm`
+          z.string().transform((data) => data.replace(/^.*:/, "")),
+        ),
+      )
+      .refine((types) => types.includes("DefinedTerm")),
     "ext:name": valueSchemaMultiple,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
-    type: "DefinedTerm",
+    type: "DefinedTerm", // Keep only this type
     name: data["ext:name"]?.join("; "), // Merge into one string
   }));
 
@@ -274,8 +284,31 @@ const publisherJsonLdSchema = z
 const subjectJsonLdSchema = z
   .object({
     "@id": z.string(),
-    // Remove prefix, e.g. `ext:DefinedTerm` to `DefinedTerm`
-    "@type": z.string().transform((data) => data.replace(/^.*:/, "")),
+    "@type": z
+      .preprocess(
+        (value) => (Array.isArray(value) ? value : [value]),
+        z.array(
+          // Remove prefix, e.g. `ext:DefinedTerm` to `DefinedTerm`
+          z.string().transform((data) => data.replace(/^.*:/, "")),
+        ),
+      )
+      .transform((types) => {
+        // Return the primary type of the subject
+        // (not combinations, e.g. `Person` *and* `DefinedTerm`)
+        if (types.includes("Person")) {
+          return "Person";
+        }
+        if (types.includes("Organization")) {
+          return "Organization";
+        }
+        if (types.includes("Place")) {
+          return "Place";
+        }
+        if (types.includes("CreativeWork")) {
+          return "CreativeWork";
+        }
+        return "DefinedTerm";
+      }),
     "ext:name": valueSchemaMultiple,
   })
   .transform((data) => ({

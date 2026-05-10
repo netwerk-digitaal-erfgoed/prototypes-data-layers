@@ -20,8 +20,15 @@ DISTRIBUTION3=(
   "queries/collectie-limburgs-museum.rq"
 )
 
+# Haags Historisch Museum/Rijksmuseum De Gevangenpoort
+DISTRIBUTION4=(
+  "https://www.ldmax.nl/datasets/Q11722011/collectie/resources/collectie.nq.gz"
+  "queries/collectie-haags-historisch-museum.rq"
+)
+
 DISTRIBUTIONS=(
   # DISTRIBUTION1[@] # Server unreachable (as of 7 May 2026)
   DISTRIBUTION2[@]
   DISTRIBUTION3[@]
+  DISTRIBUTION4[@]
 )
