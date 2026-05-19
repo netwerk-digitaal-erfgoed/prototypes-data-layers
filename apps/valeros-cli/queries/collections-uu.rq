@@ -60,6 +60,10 @@ CONSTRUCT {
   ?subjectId a ?subjectType ;
     ext:name ?subjectName .
 
+  ?mediaObjectLicense a ext:License ;
+    ext:name ?mediaObjectLicenseName ;
+    ext:isBasedOn ?originalMediaObjectLicense .
+
   ?associatedMediaId a ?associatedMediaType ;
     ext:license ?mediaObjectLicense ;
     ext:contentUrl ?contentUrl ;
@@ -108,7 +112,7 @@ WHERE {
   OPTIONAL { ?cho schema:description ?description }
 
   OPTIONAL {
-    # Omit the language tag from the date - not according to the NDE spec, e.g.
+    # Omit the language tag from the date - not according to SCHEMA-AP-NDE, e.g.
     # `schema:dateCreated "1910"@nl` -> `schema:dateCreated "1910"`
     ?cho schema:dateCreated ?originalDateCreated
     BIND(STR(?originalDateCreated) AS ?dateCreated)
@@ -182,14 +186,16 @@ WHERE {
     BIND(IRI(?thumbnailUrlAsString) AS ?thumbnailUrl)
     BIND(IRI(CONCAT("https://example.org/", MD5(STR(?contentUrl)))) AS ?associatedMediaId)
 
-    # Missing in the source data - assume it's the same license as the dataset
-    BIND(?datasetLicense AS ?mediaObjectLicense)
+    # License is missing in the source data - assume it's the same license as the dataset
+    BIND(IRI("http://standaarden.overheid.nl/owms/terms/geslotenlicentie") AS ?originalMediaObjectLicense)
+    BIND(IRI(CONCAT("https://example.org/", MD5(STR(?originalMediaObjectLicense)))) AS ?mediaObjectLicense)
+    BIND("Gesloten licentie"@nl AS ?mediaObjectLicenseName)
 
     # IIIF Image API support is optional
     OPTIONAL {
       ?associatedMedia schema:isBasedOn ?isBasedOnIiifImageApiRaw .
 
-      # Remove the trailing "/info.json" - not according to the NDE spec
+      # Remove the trailing "/info.json" - not according to SCHEMA-AP-NDE
       BIND(IRI(STRBEFORE(STR(?isBasedOnIiifImageApiRaw), "/info.json")) AS ?isBasedOnIiifImageApi)
 
       ?isBasedOnIiifImageApiRaw schema:encodingFormat ?iiifImageApiEncodingFormat

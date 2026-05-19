@@ -14,8 +14,8 @@ fetch() {
   local baseFileName=$(basename "${url%%\?*}")
   local tempOutputFile="$outputDirName/$baseFileName"
 
-  # Download the distribution
-  wget -q $url -O "$tempOutputFile"
+  # Download the distribution. Timeout if connecting takes too long
+  wget -q --timeout 10 $url -O "$tempOutputFile"
 
   # Test for gzip
   if gzip -t "$tempOutputFile" 2>/dev/null; then

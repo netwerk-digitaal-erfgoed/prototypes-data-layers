@@ -177,14 +177,13 @@ WHERE {
       ?isBasedOnIiifImageApi schema:encodingFormat ?iiifImageApiEncodingFormat
       FILTER(?iiifImageApiEncodingFormat = "application/ld+json;profile='http://iiif.io/api/image/3/context.json'")
     }
-  }
 
-  # IIIF Presentation API support is optional.
-  # Be aware of the `schema:isBasedOn` jump, which is not according to SCHEMA-AP-NDE
-  OPTIONAL {
-    ?cho schema:associatedMedia ?associatedMediaIiifPresentationApi .
-    ?associatedMediaIiifPresentationApi schema:isBasedOn ?isBasedOnIiifPresentationApi .
-    ?isBasedOnIiifPresentationApi schema:encodingFormat ?iiifPresentationApiEncodingFormat
-    FILTER(?iiifPresentationApiEncodingFormat = "application/ld+json;profile='http://iiif.io/api/presentation/3/context.json'")
+    # IIIF Presentation API support is optional.
+    # Be aware of the `schema:isBasedOn` jump, which is not according to SCHEMA-AP-NDE
+    OPTIONAL {
+      ?associatedMedia schema:isBasedOn ?associatedMediaIiifPresentationApi .
+      ?associatedMediaIiifPresentationApi schema:encodingFormat ?iiifPresentationApiEncodingFormat
+      FILTER(?iiifPresentationApiEncodingFormat = "application/ld+json;profile='http://iiif.io/api/presentation/3/context.json'")
+    }
   }
 }
