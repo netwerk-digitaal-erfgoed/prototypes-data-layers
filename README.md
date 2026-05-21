@@ -92,3 +92,7 @@ Get the terms on the first page of the collection:
 Find the terms that match query `werk`:
 
     curl http://localhost:3000/v1/terms/page/1?q=werk
+
+Get a specific term:
+
+    curl http://localhost:3000/v1/terms/9688aebbdc49d16ff0a8ff8586e32f6f
