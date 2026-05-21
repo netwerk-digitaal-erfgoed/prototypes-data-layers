@@ -1,5 +1,5 @@
 import { sValidator } from "@hono/standard-validator";
-import { Document, search, SearchResult } from "@repo/typesense/terms";
+import { Document, search, SearchResult, retrieve } from "@repo/typesense/terms";
 import { Hono } from "hono";
 import { z } from "zod";
 import { Env } from "./env.js";
@@ -163,5 +163,27 @@ function buildPagedCollectionResponse(
 
   return response;
 }
+
+const singleResourceParamsSchema = z.object({
+  id: z.string(),
+});
+
+app.get("/v1/terms/:id", sValidator("param", singleResourceParamsSchema), async (c) => {
+  const params = c.req.valid("param");
+
+  const document = await retrieve({
+    client: c.get("typesenseClient"),
+    id: params.id,
+  });
+
+  if (document === undefined) {
+    return c.notFound();
+  }
+
+  const baseUri = new URL(c.req.url).origin + "/v1";
+  const response = buildDocumentResponse(baseUri, document);
+
+  return c.json(response);
+});
 
 export default app;

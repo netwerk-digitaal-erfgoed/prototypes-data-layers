@@ -1,4 +1,4 @@
-import { Client } from "typesense";
+import { Client, Errors } from "typesense";
 import { z } from "zod";
 
 const documentSchema = z.object({
@@ -59,4 +59,27 @@ export async function search(input: SearchInput): Promise<SearchResult> {
   const result = searchResultSchema.parse(response);
 
   return result;
+}
+
+const retrieveInputSchema = z.object({
+  client: z.instanceof(Client),
+  id: z.string(),
+});
+
+type RetrieveInput = z.input<typeof retrieveInputSchema>;
+
+export async function retrieve(input: RetrieveInput): Promise<Document | undefined> {
+  const opts = retrieveInputSchema.parse(input);
+
+  try {
+    const response = await opts.client.collections("terms").documents(opts.id).retrieve();
+
+    return documentSchema.parse(response);
+  } catch (err) {
+    if (err instanceof Errors.ObjectNotFound) {
+      return undefined;
+    }
+
+    throw err;
+  }
 }
