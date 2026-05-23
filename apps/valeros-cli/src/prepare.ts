@@ -77,11 +77,15 @@ const datasetJsonLdSchema = z
     "@id": z.string(),
     "@type": z.literal("ext:Dataset"),
     "ext:name": valueSchemaMultiple,
+    "ext:license": idSchemaOne,
+    "ext:publisher": idSchemaOne,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
     type: "Dataset",
     name: data["ext:name"]?.join("; "), // Merge into one string
+    license_id: createIdFrom(data["ext:license"]),
+    publisher_id: createIdFrom(data["ext:publisher"]),
   }));
 
 const genreJsonLdSchema = z
@@ -456,7 +460,7 @@ export async function prepare(input: PrepareInput) {
       schema: creatorJsonLdSchema,
     },
     {
-      name: "01.datasets.jsonl",
+      name: "02.datasets.jsonl",
       schema: datasetJsonLdSchema,
     },
     {
@@ -464,7 +468,7 @@ export async function prepare(input: PrepareInput) {
       schema: genreJsonLdSchema,
     },
     {
-      name: "03.heritage_objects.jsonl",
+      name: "04.heritage_objects.jsonl",
       schema: heritageObjectJsonLdSchema,
     },
     {
@@ -476,7 +480,7 @@ export async function prepare(input: PrepareInput) {
       schema: materialJsonLdSchema,
     },
     {
-      name: "02.media_objects.jsonl",
+      name: "03.media_objects.jsonl",
       schema: mediaObjectJsonLdSchema,
     },
     {

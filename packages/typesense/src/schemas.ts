@@ -46,7 +46,18 @@ export const datasetsSchema = {
   name: "datasets",
   fields: [
     { name: "type", type: "string" },
-    { name: "name", type: "string" },
+    {
+      name: "name",
+      type: "string",
+      // Enable infix search to find documents that contains a piece of text
+      // that appears in the middle of a word: `eum` => `Museum`.
+      // TBD: apply this to other or all searches as well?
+      infix: true,
+      // Sorting on a string field requires the construction of a separate index
+      sort: true,
+    },
+    { name: "publisher_id", type: "string", reference: "publishers.id" },
+    { name: "license_id", type: "string", reference: "licenses.id" },
   ],
 } as const satisfies CollectionCreateSchema;
 
@@ -54,6 +65,8 @@ export type Dataset = {
   id: string;
   type: string;
   name: string;
+  publisher_id: string;
+  license_id: string;
 };
 
 export const genresSchema = {
