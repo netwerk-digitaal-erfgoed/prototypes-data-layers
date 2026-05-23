@@ -1,6 +1,7 @@
 import { factory } from "./factory.js";
 import datasetsApp from "./datasets.js";
 import heritageObjectsApp from "./heritage-objects.js";
+import licensesApp from "./licenses.js";
 import organizationsApp from "./organizations.js";
 import personsApp from "./persons.js";
 import placesApp from "./places.js";
@@ -12,6 +13,7 @@ const app = factory.createApp({ strict: true });
 // (https://hono.dev/docs/api/routing#grouping-without-changing-base)
 app.route("/", datasetsApp);
 app.route("/", heritageObjectsApp);
+app.route("/", licensesApp);
 app.route("/", organizationsApp);
 app.route("/", personsApp);
 app.route("/", placesApp);

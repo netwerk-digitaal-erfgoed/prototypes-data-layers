@@ -27,6 +27,8 @@
   - [Get a single person](#get-a-single-person)
   - [Get a single occupation](#get-a-single-occupation)
   - [Get a single media object](#get-a-single-media-object)
+  - [Get the licenses collection](#get-the-licenses-collection)
+  - [List licenses in a paged collection](#list-licenses-in-a-paged-collection)
   - [Get a single license](#get-a-single-license)
   - [Get the terms collection](#get-the-terms-collection)
   - [List terms in a paged collection](#list-terms-in-a-paged-collection)
@@ -776,6 +778,87 @@ Design decisions:
   "isBasedOn": {
     "id": "https://collections.uu.nl/IIIF/33832",
     "encodingFormat": "application/ld+json;profile='http://iiif.io/api/image/3/context.json'"
+  }
+}
+```
+
+### Get the licenses collection
+
+#### Request
+
+`GET /v1/licenses`
+
+##### URI parameters
+
+| Property | Data type | Cardinality | Description                                             |
+| -------- | --------- | ----------- | ------------------------------------------------------- |
+| `q`      | String    | 0 or 1      | Search query, e.g. `domein`                             |
+| `sort`   | String    | 0 or 1      | Sort property and value, e.g. `name:asc` or `name:desc` |
+
+> [!NOTE]
+> To discuss:
+>
+> 1. Is there a spec/standard/convention for modeling the request, notably the URI parameters?
+
+#### Response
+
+##### Example body
+
+```json
+{
+  "id": "https://example.org/v1/licenses",
+  "type": "OrderedCollection",
+  "totalItems": 207,
+  "first": "https://example.org/v1/licenses/page/1?size=10",
+  "last": "https://example.org/v1/licenses/page/21?size=10"
+}
+```
+
+### List terms in a paged collection
+
+#### Request
+
+`GET /v1/licenses/page/{page}?size={size}&q={q}&sort={sort}`
+
+##### URI parameters
+
+| Property | Data type | Cardinality | Description                                             |
+| -------- | --------- | ----------- | ------------------------------------------------------- |
+| `page`   | Number    | 1           | Page index, e.g. `1`                                    |
+| `size`   | Number    | 0 or 1      | Number of items per page, e.g. `10`                     |
+| `q`      | String    | 0 or 1      | Search query, e.g. `domein`                             |
+| `sort`   | String    | 0 or 1      | Sort property and value, e.g. `name:asc` or `name:desc` |
+
+> [!NOTE]
+> To discuss:
+>
+> 1. Is there a spec/standard/convention for modeling the request, notably the URI parameters?
+
+#### Response
+
+##### Example body
+
+```json
+{
+  "id": "https://example.org/v1/licenses/page/2?size=10&q=domein&sort=name%3Aasc",
+  "type": "OrderedCollectionPage",
+  "next": "https://example.org/v1/licenses/page/3?size=10&q=domein&sort=name%3Aasc",
+  "prev": "https://example.org/v1/licenses/page/1?size=10&q=domein&sort=name%3Aasc",
+  "orderedItems": [
+    {
+      "id": "https://example.org/v1/licenses/{id}",
+      "type": "CreativeWork",
+      "name": "Creative Commons: publieke domein"
+      // ... other properties (see the response of endpoint "Get a single license")
+    }
+    // ... other items
+  ],
+  "partOf": {
+    "id": "https://example.org/v1/licenses?q=naamsvermelding&sort=name%3Adesc",
+    "type": "OrderedCollection",
+    "totalItems": 207,
+    "first": "https://example.org/v1/licenses/page/1?size=10&q=domein&sort=name%3Aasc",
+    "last": "https://example.org/v1/licenses/page/20?size=10&q=domein&sort=name%3Aasc"
   }
 }
 ```

@@ -101,6 +101,24 @@ Get a specific heritage object:
 
     curl http://localhost:3000/v1/heritage-objects/f3cb201d0d6068c4c959f352b49a7587
 
+### Licenses
+
+Get the licenses collection:
+
+    curl http://localhost:3000/v1/licenses
+
+Get the licenses on the first page of the collection:
+
+    curl http://localhost:3000/v1/licenses/page/1
+
+Find the licenses that match query `naamsvermelding`:
+
+    curl http://localhost:3000/v1/licenses/page/1?q=naamsvermelding
+
+Get a specific license:
+
+    curl http://localhost:3000/v1/licenses/4ff4afb1d8fbd5ac46438c5d5029a99f
+
 ### Organizations
 
 Get the organizations collection:

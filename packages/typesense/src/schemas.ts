@@ -161,7 +161,16 @@ export const licensesSchema = {
   name: "licenses",
   fields: [
     { name: "type", type: "string" },
-    { name: "name", type: "string" },
+    {
+      name: "name",
+      type: "string",
+      // Enable infix search to find documents that contains a piece of text
+      // that appears in the middle of a word: `eum` => `Museum`.
+      // TBD: apply this to other or all searches as well?
+      infix: true,
+      // Sorting on a string field requires the construction of a separate index
+      sort: true,
+    },
     { name: "is_based_on", type: "string" },
   ],
 } as const satisfies CollectionCreateSchema;
