@@ -205,6 +205,29 @@ export type MediaObject = {
   encoding_format?: string;
 };
 
+export const organizationsSchema = {
+  name: "organizations",
+  fields: [
+    { name: "type", type: "string" },
+    {
+      name: "name",
+      type: "string",
+      // Enable infix search to find documents that contains a piece of text
+      // that appears in the middle of a word: `eum` => `Museum`.
+      // TBD: apply this to other or all searches as well?
+      infix: true,
+      // Sorting on a string field requires the construction of a separate index
+      sort: true,
+    },
+  ],
+} as const satisfies CollectionCreateSchema;
+
+export type Organization = {
+  id: string;
+  type: string;
+  name: string;
+};
+
 export const personsSchema = {
   name: "persons",
   fields: [
