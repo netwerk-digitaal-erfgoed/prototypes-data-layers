@@ -228,6 +228,29 @@ export type Person = {
   name: string;
 };
 
+export const placesSchema = {
+  name: "places",
+  fields: [
+    { name: "type", type: "string" },
+    {
+      name: "name",
+      type: "string",
+      // Enable infix search to find documents that contains a piece of text
+      // that appears in the middle of a word: `trech` => `Utrecht`.
+      // TBD: apply this to other or all searches as well?
+      infix: true,
+      // Sorting on a string field requires the construction of a separate index
+      sort: true,
+    },
+  ],
+} as const satisfies CollectionCreateSchema;
+
+export type Place = {
+  id: string;
+  type: string;
+  name: string;
+};
+
 export const publishersSchema = {
   name: "publishers",
   fields: [
