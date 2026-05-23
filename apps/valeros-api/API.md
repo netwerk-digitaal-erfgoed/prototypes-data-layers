@@ -18,6 +18,8 @@
   - [Get a single heritage object](#get-a-single-heritage-object)
   - [Get a single place](#get-a-single-place)
   - [Get a single organization](#get-a-single-organization)
+  - [Get the persons collection](#get-the-persons-collection)
+  - [List persons in a paged collection](#list-persons-in-a-paged-collection)
   - [Get a single person](#get-a-single-person)
   - [Get a single occupation](#get-a-single-occupation)
   - [Get a single media object](#get-a-single-media-object)
@@ -440,6 +442,87 @@ Design decisions:
     "id": "https://example.org/v1/places/{id}",
     "type": "Place",
     "name": "Office location"
+  }
+}
+```
+
+### Get the persons collection
+
+#### Request
+
+`GET /v1/persons`
+
+##### URI parameters
+
+| Property | Data type | Cardinality | Description                                             |
+| -------- | --------- | ----------- | ------------------------------------------------------- |
+| `q`      | String    | 0 or 1      | Search query, e.g. `john`                               |
+| `sort`   | String    | 0 or 1      | Sort property and value, e.g. `name:asc` or `name:desc` |
+
+> [!NOTE]
+> To discuss:
+>
+> 1. Is there a spec/standard/convention for modeling the request, notably the URI parameters?
+
+#### Response
+
+##### Example body
+
+```json
+{
+  "id": "https://example.org/v1/persons",
+  "type": "OrderedCollection",
+  "totalItems": 207,
+  "first": "https://example.org/v1/persons/page/1?size=10",
+  "last": "https://example.org/v1/persons/page/21?size=10"
+}
+```
+
+### List persons in a paged collection
+
+#### Request
+
+`GET /v1/persons/page/{page}?size={size}&q={q}&sort={sort}`
+
+##### URI parameters
+
+| Property | Data type | Cardinality | Description                                             |
+| -------- | --------- | ----------- | ------------------------------------------------------- |
+| `page`   | Number    | 1           | Page index, e.g. `1`                                    |
+| `size`   | Number    | 0 or 1      | Number of items per page, e.g. `10`                     |
+| `q`      | String    | 0 or 1      | Search query, e.g. `john`                               |
+| `sort`   | String    | 0 or 1      | Sort property and value, e.g. `name:asc` or `name:desc` |
+
+> [!NOTE]
+> To discuss:
+>
+> 1. Is there a spec/standard/convention for modeling the request, notably the URI parameters?
+
+#### Response
+
+##### Example body
+
+```json
+{
+  "id": "https://example.org/v1/persons/page/2?size=10&q=john&sort=name%3Aasc",
+  "type": "OrderedCollectionPage",
+  "next": "https://example.org/v1/persons/page/3?size=10&q=john&sort=name%3Aasc",
+  "prev": "https://example.org/v1/persons/page/1?size=10&q=john&sort=name%3Aasc",
+  "orderedItems": [
+    {
+      "id": "https://example.org/v1/persons/{id}",
+      "type": "Person",
+      "name": "John Doe"
+      // ... other properties (see the response of endpoint "Get a single person")
+    }
+    // ... other items
+  ],
+  "partOf": {
+    "id": "https://example.org/v1/persons?q=john&sort=name%3Adesc",
+    "type": "OrderedCollection",
+    "totalItems": 207,
+    "first": "https://example.org/v1/persons/page/1?size=10&q=john&sort=name%3Aasc",
+    "last": "https://example.org/v1/persons/page/20?size=10&q=john&sort=name%3Aasc"
   }
 }
 ```

@@ -39,11 +39,13 @@ Import data into the search index with the Valeros CLI:
 
     docker run --network host -i --rm --env-file .env -t valeros-cli ./import.sh
 
-Use the Valeros API:
+## Use the Valeros API
 
 Check the health of the API:
 
     curl -i http://localhost:3000/health
+
+### Heritage objects
 
 Get the heritage objects collection:
 
@@ -73,13 +75,15 @@ Find the heritage objects that match the term with ID `http://localhost:3000/v1/
 
     curl http://localhost:3000/v1/heritage-objects/page/1?filter=genre.id%3Ahttp%3A%2F%2Flocalhost%3A3000%2Fv1%2Fterms%2F26abb4f2d20483c594b6ec695240071e
 
-Find the heritage objects that match the term with ID `http://localhost:3000/v1/terms/a5b066b96fac9f0e71534f1a7811a24a` regardless of field ("*"):
+Find the heritage objects that match the term with ID `http://localhost:3000/v1/terms/a5b066b96fac9f0e71534f1a7811a24a` regardless of field ("\*"):
 
     curl http://localhost:3000/v1/heritage-objects/page/1?filter=%2A.id%3Ahttp%3A%2F%2Flocalhost%3A3000%2Fv1%2Fterms%2F26abb4f2d20483c594b6ec695240071e
 
 Get a specific heritage object:
 
     curl http://localhost:3000/v1/heritage-objects/f3cb201d0d6068c4c959f352b49a7587
+
+### Terms
 
 Get the terms collection:
 
@@ -96,3 +100,21 @@ Find the terms that match query `werk`:
 Get a specific term:
 
     curl http://localhost:3000/v1/terms/9688aebbdc49d16ff0a8ff8586e32f6f
+
+### Persons
+
+Get the persons collection:
+
+    curl http://localhost:3000/v1/persons
+
+Get the persons on the first page of the collection:
+
+    curl http://localhost:3000/v1/persons/page/1
+
+Find the persons that match query `rob`:
+
+    curl http://localhost:3000/v1/persons/page/1?q=rob
+
+Get a specific person:
+
+    curl http://localhost:3000/v1/persons/07e69c4737983d14f0d2970d58c78a2c
