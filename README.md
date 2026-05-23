@@ -83,6 +83,24 @@ Get a specific heritage object:
 
     curl http://localhost:3000/v1/heritage-objects/f3cb201d0d6068c4c959f352b49a7587
 
+### Organizations
+
+Get the organizations collection:
+
+    curl http://localhost:3000/v1/organizations
+
+Get the organizations on the first page of the collection:
+
+    curl http://localhost:3000/v1/organizations/page/1
+
+Find the organizations that match query `museum`:
+
+    curl http://localhost:3000/v1/organizations/page/1?q=museum
+
+Get a specific organization:
+
+    curl http://localhost:3000/v1/organizations/bd9243c366eff50a6be20517d0a0bb4a
+
 ### Persons
 
 Get the persons collection:

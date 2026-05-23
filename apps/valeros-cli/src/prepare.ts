@@ -267,6 +267,26 @@ const mediaObjectJsonLdSchema = z.union([
   iiifPresentationApiMediaObjectJsonLdSchema,
 ]);
 
+const organizationJsonLdSchema = z
+  .object({
+    "@id": z.string(),
+    "@type": z
+      .preprocess(
+        (value) => (Array.isArray(value) ? value : [value]),
+        z.array(
+          // Remove prefix, e.g. `ext:Organization` to `Organization`
+          z.string().transform((data) => data.replace(/^.*:/, "")),
+        ),
+      )
+      .refine((types) => types.includes("Organization")),
+    "ext:name": valueSchemaMultiple,
+  })
+  .transform((data) => ({
+    id: createIdFrom(data["@id"]),
+    type: "Organization",
+    name: data["ext:name"]?.join("; "), // Merge into one string
+  }));
+
 const personJsonLdSchema = z
   .object({
     "@id": z.string(),
@@ -458,6 +478,10 @@ export async function prepare(input: PrepareInput) {
     {
       name: "02.media_objects.jsonl",
       schema: mediaObjectJsonLdSchema,
+    },
+    {
+      name: "01.organizations.jsonl",
+      schema: organizationJsonLdSchema,
     },
     {
       name: "01.persons.jsonl",
