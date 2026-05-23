@@ -452,10 +452,10 @@ Design decisions:
 
 ```json
 {
-  "id": "https://example.org/v1/places/page/2?size=10&q=john&sort=name%3Aasc",
+  "id": "https://example.org/v1/places/page/2?size=10&q=haag&sort=name%3Aasc",
   "type": "OrderedCollectionPage",
-  "next": "https://example.org/v1/places/page/3?size=10&q=john&sort=name%3Aasc",
-  "prev": "https://example.org/v1/places/page/1?size=10&q=john&sort=name%3Aasc",
+  "next": "https://example.org/v1/places/page/3?size=10&q=haag&sort=name%3Aasc",
+  "prev": "https://example.org/v1/places/page/1?size=10&q=haag&sort=name%3Aasc",
   "orderedItems": [
     {
       "id": "https://example.org/v1/places/{id}",
@@ -466,11 +466,11 @@ Design decisions:
     // ... other items
   ],
   "partOf": {
-    "id": "https://example.org/v1/places?q=john&sort=name%3Adesc",
+    "id": "https://example.org/v1/places?q=haag&sort=name%3Adesc",
     "type": "OrderedCollection",
     "totalItems": 207,
-    "first": "https://example.org/v1/places/page/1?size=10&q=john&sort=name%3Aasc",
-    "last": "https://example.org/v1/places/page/20?size=10&q=john&sort=name%3Aasc"
+    "first": "https://example.org/v1/places/page/1?size=10&q=haag&sort=name%3Aasc",
+    "last": "https://example.org/v1/places/page/20?size=10&q=haag&sort=name%3Aasc"
   }
 }
 ```
