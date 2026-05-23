@@ -270,13 +270,40 @@ const mediaObjectJsonLdSchema = z.union([
 const personJsonLdSchema = z
   .object({
     "@id": z.string(),
-    // Remove prefix, e.g. `ext:Person` to `Person`
-    "@type": z.literal("ext:Person").transform((data) => data.replace(/^.*:/, "")),
+    "@type": z
+      .preprocess(
+        (value) => (Array.isArray(value) ? value : [value]),
+        z.array(
+          // Remove prefix, e.g. `ext:Person` to `Person`
+          z.string().transform((data) => data.replace(/^.*:/, "")),
+        ),
+      )
+      .refine((types) => types.includes("Person")),
     "ext:name": valueSchemaMultiple,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
-    type: data["@type"],
+    type: "Person",
+    name: data["ext:name"]?.join("; "), // Merge into one string
+  }));
+
+const placeJsonLdSchema = z
+  .object({
+    "@id": z.string(),
+    "@type": z
+      .preprocess(
+        (value) => (Array.isArray(value) ? value : [value]),
+        z.array(
+          // Remove prefix, e.g. `ext:Place` to `Place`
+          z.string().transform((data) => data.replace(/^.*:/, "")),
+        ),
+      )
+      .refine((types) => types.includes("Place")),
+    "ext:name": valueSchemaMultiple,
+  })
+  .transform((data) => ({
+    id: createIdFrom(data["@id"]),
+    type: "Place",
     name: data["ext:name"]?.join("; "), // Merge into one string
   }));
 
@@ -435,6 +462,10 @@ export async function prepare(input: PrepareInput) {
     {
       name: "01.persons.jsonl",
       schema: personJsonLdSchema,
+    },
+    {
+      name: "01.places.jsonl",
+      schema: placeJsonLdSchema,
     },
     {
       name: "01.publishers.jsonl",

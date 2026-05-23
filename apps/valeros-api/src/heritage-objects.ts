@@ -25,6 +25,16 @@ const idSuffix = ".id";
 // These fields always end with `_id`
 const identityFieldNames = Array.from(facets.keys()).map((key) => `${key}_id`);
 
+// Map data types (e.g. `Person`) to API URI names (e.g. `persons`)
+const typeToUriName = new Map([
+  ["CreativeWork", "heritage-objects"],
+  ["Dataset", "datasets"],
+  ["DefinedTerm", "terms"],
+  ["Organization", "organizations"],
+  ["Person", "persons"],
+  ["Place", "places"],
+]);
+
 function buildFilter(filters: string[]) {
   const internalFilters: string[] = [];
 
@@ -271,12 +281,15 @@ function buildDocumentResponse(baseUri: string, document: Document) {
       type: material.type,
       name: material.name,
     })),
-    about: document.subjects?.map((subject) => ({
-      // TODO: a subject can also refer to e.g. a person or a creative work, not just a term
-      id: `${baseUri}/terms/${subject.id}`,
-      type: subject.type,
-      name: subject.name,
-    })),
+    about: document.subjects?.map((subject) => {
+      // A subject can refer to a term but also to e.g. a person or a creative work
+      const uriName = typeToUriName.get(subject.type);
+      return {
+        id: `${baseUri}/${uriName}/${subject.id}`,
+        type: subject.type,
+        name: subject.name,
+      };
+    }),
     associatedMedia: document.media_objects?.map((mediaObject) => {
       // 'Full' media object
       if (mediaObject.encoding_format === undefined) {
