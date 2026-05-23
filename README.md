@@ -39,11 +39,13 @@ Import data into the search index with the Valeros CLI:
 
     docker run --network host -i --rm --env-file .env -t valeros-cli ./import.sh
 
-Use the Valeros API:
+## Use the Valeros API
 
 Check the health of the API:
 
     curl -i http://localhost:3000/health
+
+### Heritage objects
 
 Get the heritage objects collection:
 
@@ -81,6 +83,8 @@ Get a specific heritage object:
 
     curl http://localhost:3000/v1/heritage-objects/f3cb201d0d6068c4c959f352b49a7587
 
+### Terms
+
 Get the terms collection:
 
     curl http://localhost:3000/v1/terms
@@ -96,3 +100,21 @@ Find the terms that match query `werk`:
 Get a specific term:
 
     curl http://localhost:3000/v1/terms/9688aebbdc49d16ff0a8ff8586e32f6f
+
+### Persons
+
+Get the persons collection:
+
+    curl http://localhost:3000/v1/persons
+
+Get the persons on the first page of the collection:
+
+    curl http://localhost:3000/v1/persons/page/1
+
+Find the persons that match query `rob`:
+
+    curl http://localhost:3000/v1/persons/page/1?q=rob
+
+Get a specific person:
+
+    curl http://localhost:3000/v1/persons/07e69c4737983d14f0d2970d58c78a2c

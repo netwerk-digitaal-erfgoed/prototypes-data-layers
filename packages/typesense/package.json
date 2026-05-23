@@ -5,6 +5,7 @@
   "exports": {
     "./client": "./dist/client.mjs",
     "./heritage-objects": "./dist/heritage-objects.mjs",
+    "./persons": "./dist/persons.mjs",
     "./schemas": "./dist/schemas.mjs",
     "./terms": "./dist/terms.mjs",
     "./*": "./*"
