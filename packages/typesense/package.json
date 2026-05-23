@@ -4,6 +4,7 @@
   "type": "module",
   "exports": {
     "./client": "./dist/client.mjs",
+    "./datasets": "./dist/datasets.mjs",
     "./heritage-objects": "./dist/heritage-objects.mjs",
     "./organizations": "./dist/organizations.mjs",
     "./persons": "./dist/persons.mjs",

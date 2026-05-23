@@ -1,0 +1,105 @@
+import { Client, Errors } from "typesense";
+import { z } from "zod";
+
+const includeFields = ["$licenses(*)", "$publishers(*)"];
+
+const excludeFields = ["license_id", "publisher_id"];
+
+const documentSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  name: z.string(),
+  licenses: z.object({
+    id: z.string(),
+    name: z.string(),
+    type: z.string(),
+    is_based_on: z.string(),
+  }),
+  publishers: z.object({
+    id: z.string(),
+    name: z.string(),
+    type: z.string(),
+  }),
+});
+
+export type Document = z.output<typeof documentSchema>;
+
+const searchResultSchema = z.object({
+  found: z.number(),
+  page: z.number(),
+  request_params: z.object({
+    per_page: z.number(),
+    q: z.string(),
+  }),
+  hits: z.array(
+    z.object({
+      document: documentSchema,
+    }),
+  ),
+});
+
+export type SearchResult = z.output<typeof searchResultSchema>;
+
+const searchInputSchema = z.object({
+  client: z.instanceof(Client),
+  page: z.number().default(1),
+  size: z.number().default(10),
+  sort: z.string().optional(),
+  q: z.string(),
+});
+
+type SearchInput = z.input<typeof searchInputSchema>;
+
+export async function search(input: SearchInput): Promise<SearchResult> {
+  const opts = searchInputSchema.parse(input);
+
+  const response = await opts.client
+    .collections("datasets")
+    .documents()
+    .search({
+      page: opts.page,
+      per_page: opts.size,
+      q: opts.q,
+      // The order matters: "A document that matches on a field earlier in
+      // the list of query_by fields is considered more relevant than a
+      // document matched on a field later in the list."
+      // (https://typesense.org/docs/guide/ranking-and-relevance.html)
+      query_by: ["name"],
+      sort_by: opts.sort,
+      // Always use infix search. TBD: is this a sensible default
+      // or a feature that should be enabled per search request?
+      infix: "always",
+      exclude_fields: excludeFields,
+      include_fields: includeFields,
+    });
+
+  const result = searchResultSchema.parse(response);
+
+  return result;
+}
+
+const retrieveInputSchema = z.object({
+  client: z.instanceof(Client),
+  id: z.string(),
+});
+
+type RetrieveInput = z.input<typeof retrieveInputSchema>;
+
+export async function retrieve(input: RetrieveInput): Promise<Document | undefined> {
+  const opts = retrieveInputSchema.parse(input);
+
+  try {
+    const response = await opts.client.collections("datasets").documents(opts.id).retrieve({
+      exclude_fields: excludeFields,
+      include_fields: includeFields,
+    });
+
+    return documentSchema.parse(response);
+  } catch (err) {
+    if (err instanceof Errors.ObjectNotFound) {
+      return undefined;
+    }
+
+    throw err;
+  }
+}

@@ -45,6 +45,24 @@ Check the health of the API:
 
     curl -i http://localhost:3000/health
 
+### Datasets
+
+Get the datasets collection:
+
+    curl http://localhost:3000/v1/datasets
+
+Get the datasets on the first page of the collection:
+
+    curl http://localhost:3000/v1/datasets/page/1
+
+Find the datasets that match query `museum`:
+
+    curl http://localhost:3000/v1/datasets/page/1?q=museum
+
+Get a specific dataset:
+
+    curl http://localhost:3000/v1/datasets/d4331be13e4a352d438e7b0f9d1374db
+
 ### Heritage objects
 
 Get the heritage objects collection:

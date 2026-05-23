@@ -16,9 +16,9 @@
   - [Get the heritage objects collection](#get-the-heritage-objects-collection)
   - [List heritage objects in a paged collection](#list-heritage-objects-in-a-paged-collection)
   - [Get a single heritage object](#get-a-single-heritage-object)
-  - [Get a single place](#get-a-single-place)
   - [Get the places collection](#get-the-places-collection)
   - [List places in a paged collection](#list-places-in-a-paged-collection)
+  - [Get a single place](#get-a-single-place)
   - [Get the organizations collection](#get-the-organizations-collection)
   - [List organizations in a paged collection](#list-organizations-in-a-paged-collection)
   - [Get a single organization](#get-a-single-organization)
@@ -31,6 +31,8 @@
   - [Get the terms collection](#get-the-terms-collection)
   - [List terms in a paged collection](#list-terms-in-a-paged-collection)
   - [Get a single term](#get-a-single-term)
+  - [Get the datasets collection](#get-the-datasets-collection)
+  - [List datasets in a paged collection](#list-datasets-in-a-paged-collection)
   - [Get a single dataset](#get-a-single-dataset)
   - [Get the JSON-LD context](#get-the-json-ld-context)
 
@@ -893,6 +895,87 @@ Design decisions:
   "id": "https://example.org/v1/terms/{id}",
   "type": "DefinedTerm",
   "name": "fotoafdruk zwart-wit"
+}
+```
+
+### Get the datasets collection
+
+#### Request
+
+`GET /v1/datasets`
+
+##### URI parameters
+
+| Property | Data type | Cardinality | Description                                             |
+| -------- | --------- | ----------- | ------------------------------------------------------- |
+| `q`      | String    | 0 or 1      | Search query, e.g. `museum`                             |
+| `sort`   | String    | 0 or 1      | Sort property and value, e.g. `name:asc` or `name:desc` |
+
+> [!NOTE]
+> To discuss:
+>
+> 1. Is there a spec/standard/convention for modeling the request, notably the URI parameters?
+
+#### Response
+
+##### Example body
+
+```json
+{
+  "id": "https://example.org/v1/datasets",
+  "type": "OrderedCollection",
+  "totalItems": 207,
+  "first": "https://example.org/v1/datasets/page/1?size=10",
+  "last": "https://example.org/v1/datasets/page/21?size=10"
+}
+```
+
+### List datasets in a paged collection
+
+#### Request
+
+`GET /v1/datasets/page/{page}?size={size}&q={q}&sort={sort}`
+
+##### URI parameters
+
+| Property | Data type | Cardinality | Description                                             |
+| -------- | --------- | ----------- | ------------------------------------------------------- |
+| `page`   | Number    | 1           | Page index, e.g. `1`                                    |
+| `size`   | Number    | 0 or 1      | Number of items per page, e.g. `10`                     |
+| `q`      | String    | 0 or 1      | Search query, e.g. `museum`                             |
+| `sort`   | String    | 0 or 1      | Sort property and value, e.g. `name:asc` or `name:desc` |
+
+> [!NOTE]
+> To discuss:
+>
+> 1. Is there a spec/standard/convention for modeling the request, notably the URI parameters?
+
+#### Response
+
+##### Example body
+
+```json
+{
+  "id": "https://example.org/v1/datasets/page/2?size=10&q=museum&sort=name%3Aasc",
+  "type": "OrderedCollectionPage",
+  "next": "https://example.org/v1/datasets/page/3?size=10&q=museum&sort=name%3Aasc",
+  "prev": "https://example.org/v1/datasets/page/1?size=10&q=museum&sort=name%3Aasc",
+  "orderedItems": [
+    {
+      "id": "https://example.org/v1/datasets/{id}",
+      "type": "Dataset",
+      "name": "Example Dataset"
+      // ... other properties (see the response of endpoint "Get a single dataset")
+    }
+    // ... other items
+  ],
+  "partOf": {
+    "id": "https://example.org/v1/datasets?q=museum&sort=name%3Adesc",
+    "type": "OrderedCollection",
+    "totalItems": 207,
+    "first": "https://example.org/v1/datasets/page/1?size=10&q=museum&sort=name%3Aasc",
+    "last": "https://example.org/v1/datasets/page/20?size=10&q=museum&sort=name%3Aasc"
+  }
 }
 ```
 
