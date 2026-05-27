@@ -4,7 +4,7 @@
 
 # Universiteitsmuseum Utrecht
 DISTRIBUTION1=(
- "https://collections.uu.nl/datadump_28-03-2026.jsonld.gz"
+ "https://collections.uu.nl/datadump_2026-05-26.jsonld.gz"
  "queries/collections-uu.rq"
 )
 
