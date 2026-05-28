@@ -96,17 +96,19 @@ WHERE {
   BIND(IRI(CONCAT("https://example.org/", MD5(STR(?originalDatasetLicense)))) AS ?datasetLicense)
   BIND("Naamsvermelding 4.0 Internationaal"@nl AS ?datasetLicenseName)
 
-  # The dataset first refers to a schema:Role, then to a person,
-  # but this is not according to SCHEMA-AP-NDE
-  ?cho schema:creator/schema:creator ?creator .
-  ?creator schema:name ?originalCreatorName
-  BIND(STRLANG(?originalCreatorName, "nl") AS ?creatorName) # Missing in the source data
-  BIND(IRI(CONCAT("https://example.org/", MD5(STR(?creatorName)))) AS ?creatorId)
+  OPTIONAL {
+    # The dataset first refers to a schema:Role, then to a person,
+    # but this is not according to SCHEMA-AP-NDE
+    ?cho schema:creator/schema:creator ?creator .
+    ?creator schema:name ?originalCreatorName
+    BIND(STRLANG(?originalCreatorName, "nl") AS ?creatorName) # Missing in the source data
+    BIND(IRI(CONCAT("https://example.org/", MD5(STR(?creatorName)))) AS ?creatorId)
 
-  ?creator a ?creatorNativeType # E.g. `schema:Person` or `schema:Organization`
-  FILTER(?creatorNativeType IN (schema:Person, schema:Organization)) # Ignore invalid types in the source data, e.g. `schema:Agent`
-  BIND(afn:localname(?creatorNativeType) AS ?creatorLocalName) # E.g. `Person`
-  BIND(IRI(CONCAT("https://example.org/", STR(?creatorLocalName))) AS ?creatorType)
+    ?creator a ?creatorNativeType # E.g. `schema:Person` or `schema:Organization`
+    FILTER(?creatorNativeType IN (schema:Person, schema:Organization)) # Ignore invalid types in the source data, e.g. `schema:Agent`
+    BIND(afn:localname(?creatorNativeType) AS ?creatorLocalName) # E.g. `Person`
+    BIND(IRI(CONCAT("https://example.org/", STR(?creatorLocalName))) AS ?creatorType)
+  }
 
   OPTIONAL {
     ?cho schema:description ?originalDescription
@@ -115,7 +117,7 @@ WHERE {
 
   OPTIONAL {
     ?cho schema:dateCreated ?originalDateCreated
-    BIND(STR(?originalDateCreated) AS ?dateCreated) # Remove XSD type, e.g. `gYear`
+    BIND(STR(?originalDateCreated) AS ?dateCreated) # Remove the type, e.g. `xsd:gYear`
   }
 
   OPTIONAL {
