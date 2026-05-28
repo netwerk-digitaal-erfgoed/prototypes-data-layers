@@ -3,7 +3,7 @@
 
 PREFIX afn: <http://jena.apache.org/ARQ/function#>
 PREFIX ext: <https://example.org/>
-PREFIX schema: <https://schema.org/>
+PREFIX schema: <http://schema.org/> # Not: `https://`
 
 CONSTRUCT {
   ?cho a ?choType ;
@@ -96,29 +96,32 @@ WHERE {
   BIND(IRI(CONCAT("https://example.org/", MD5("https://www.umu.nl"))) AS ?publisher)
   BIND("Universiteitsmuseum Utrecht"@nl AS ?publisherName)
 
-  BIND(IRI("http://standaarden.overheid.nl/owms/terms/geslotenlicentie") AS ?originalDatasetLicense)
+  BIND(IRI("https://creativecommons.org/licenses/by/4.0/") AS ?originalDatasetLicense)
   BIND(IRI(CONCAT("https://example.org/", MD5(STR(?originalDatasetLicense)))) AS ?datasetLicense)
-  BIND("Gesloten licentie"@nl AS ?datasetLicenseName)
-
-  # Creator is a blank node, not a term IRI. Use the name instead for grouping
-  ?cho schema:creator ?creator .
-  ?creator schema:name ?creatorName .
-  BIND(IRI(CONCAT("https://example.org/", MD5(STR(?creatorName)))) AS ?creatorId)
-
-  ?creator a ?creatorNativeType # E.g. `schema:Person` or `schema:Organization`
-  BIND(afn:localname(?creatorNativeType) AS ?creatorLocalName) # E.g. `Person`
-  BIND(IRI(CONCAT("https://example.org/", STR(?creatorLocalName))) AS ?creatorType)
-
-  OPTIONAL { ?cho schema:description ?description }
+  BIND("Naamsvermelding 4.0 Internationaal"@nl AS ?datasetLicenseName)
 
   OPTIONAL {
-    # Omit the language tag from the date - not according to SCHEMA-AP-NDE, e.g.
-    # `schema:dateCreated "1910"@nl` -> `schema:dateCreated "1910"`
+    # Creator is a blank node, not a term IRI. Use the name instead for grouping
+    ?cho schema:creator ?creator .
+    ?creator schema:name ?creatorName .
+    BIND(IRI(CONCAT("https://example.org/", MD5(STR(?creatorName)))) AS ?creatorId)
+
+    ?creator a ?creatorNativeType # E.g. `schema:Person` or `schema:Organization`
+    BIND(afn:localname(?creatorNativeType) AS ?creatorLocalName) # E.g. `Person`
+    BIND(IRI(CONCAT("https://example.org/", STR(?creatorLocalName))) AS ?creatorType)
+  }
+
+  OPTIONAL {
+    ?cho schema:description ?description
+  }
+
+  OPTIONAL {
     ?cho schema:dateCreated ?originalDateCreated
-    BIND(STR(?originalDateCreated) AS ?dateCreated)
+    BIND(STR(?originalDateCreated) AS ?dateCreated) # Remove the type, e.g. `schema:Date`
   }
 
   # Genre is a blank node, not a term IRI. Use the name instead for grouping
+  # Note (2026-05-28): no longer in the source data
   OPTIONAL {
     ?cho schema:genre ?genre .
     ?genre schema:name ?genreName .
@@ -130,6 +133,7 @@ WHERE {
   }
 
   # Material is a blank node, not a term IRI. Use the name instead for grouping
+  # Note (2026-05-28): no longer in the source data
   OPTIONAL {
     ?cho schema:material ?material .
     ?material schema:name ?materialName .
@@ -141,6 +145,7 @@ WHERE {
   }
 
   # Additional type is a blank node, not a term IRI. Use the name instead for grouping
+  # Note (2026-05-28): no longer in the source data
   OPTIONAL {
     ?cho schema:additionalType ?additionalType .
     ?additionalType schema:name ?additionalTypeName .
@@ -163,6 +168,7 @@ WHERE {
   }
 
   # Subject is a blank node, not a term IRI. Use the name instead for grouping
+  # Note (2026-05-28): just one appearance left in the source data
   OPTIONAL {
     ?cho schema:about ?subject .
     ?subject schema:name ?subjectName
@@ -187,18 +193,14 @@ WHERE {
     BIND(IRI(CONCAT("https://example.org/", MD5(STR(?contentUrl)))) AS ?associatedMediaId)
 
     # License is missing in the source data - assume it's the same license as the dataset
-    BIND(IRI("http://standaarden.overheid.nl/owms/terms/geslotenlicentie") AS ?originalMediaObjectLicense)
+    BIND(IRI("https://creativecommons.org/licenses/by/4.0/") AS ?originalMediaObjectLicense)
     BIND(IRI(CONCAT("https://example.org/", MD5(STR(?originalMediaObjectLicense)))) AS ?mediaObjectLicense)
-    BIND("Gesloten licentie"@nl AS ?mediaObjectLicenseName)
+    BIND("Naamsvermelding 4.0 Internationaal"@nl AS ?mediaObjectLicenseName)
 
     # IIIF Image API support is optional
     OPTIONAL {
-      ?associatedMedia schema:isBasedOn ?isBasedOnIiifImageApiRaw .
-
-      # Remove the trailing "/info.json" - not according to SCHEMA-AP-NDE
-      BIND(IRI(STRBEFORE(STR(?isBasedOnIiifImageApiRaw), "/info.json")) AS ?isBasedOnIiifImageApi)
-
-      ?isBasedOnIiifImageApiRaw schema:encodingFormat ?iiifImageApiEncodingFormat
+      ?associatedMedia schema:isBasedOn ?isBasedOnIiifImageApi .
+      ?isBasedOnIiifImageApi schema:encodingFormat ?iiifImageApiEncodingFormat
       FILTER(?iiifImageApiEncodingFormat = "application/ld+json;profile='http://iiif.io/api/image/3/context.json'")
     }
   }
