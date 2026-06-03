@@ -1,5 +1,9 @@
 ARG NODE_VERSION=24.14.1
 
+#######################################################
+# Build the JavaScript CLI
+#######################################################
+
 # Example: https://turborepo.dev/docs/guides/tools/docker
 FROM node:${NODE_VERSION} AS base
 
@@ -30,6 +34,28 @@ COPY --from=prepare /app/out/full/ .
 
 RUN npm run build --filter=@repo/valeros-cli
 
+#######################################################
+# Build the Sophia CLI
+#######################################################
+
+FROM rust:bookworm AS sophia-cli-builder
+
+WORKDIR /app
+
+# Full SHA of commit - see https://github.com/pchampin/sophia-cli/commits/main/
+# Sophia currently does not have releases, e.g. with version numbers.
+ARG SOPHIA_CLI_VERSION="04085445c3ecbbfb86a308c830705ee52eb1d07f"
+
+# Fetch and build the source code of sophia-cli
+RUN git init && \
+    git remote add origin https://github.com/pchampin/sophia-cli.git && \
+    git fetch --depth 1 origin "${SOPHIA_CLI_VERSION}" && \
+    git checkout FETCH_HEAD && \
+    rm -rf .git && \
+    cargo build --release
+
+########################################
+# Build the runtime
 ########################################
 
 FROM eclipse-temurin:21-jre
@@ -64,8 +90,12 @@ RUN wget -q https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux
     rm -rf /tmp/node-v${NODE_VERSION}-linux-${TARGETARCH} && \
     rm /tmp/node.tar.gz
 
+# Copy the JavaScript CLI, Bash scripts and SPARQL queries
 COPY --from=builder /app/apps/valeros-cli/dist .
 COPY --from=builder /app/apps/valeros-cli/scripts .
 COPY --from=builder /app/apps/valeros-cli/queries ./queries
+
+# Copy the Sophia CLI
+COPY --from=sophia-cli-builder /app/target/release/sop /usr/local/bin/sop
 
 CMD ["bash"]

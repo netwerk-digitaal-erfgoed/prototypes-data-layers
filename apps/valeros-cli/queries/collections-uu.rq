@@ -70,8 +70,7 @@ CONSTRUCT {
     ext:thumbnailUrl ?thumbnailUrl ;
     ext:isBasedOn ?isBasedOnIiifImageApi .
 
-  ?isBasedOnIiifImageApi a ext:CreativeWork ;
-    ext:encodingFormat ?iiifImageApiEncodingFormat .
+  ?isBasedOnIiifImageApi ext:encodingFormat ?iiifImageApiEncodingFormat .
 
   ?associatedMediaIiifPresentationApi a ext:MediaObject ;
     ext:encodingFormat ?iiifPresentationApiEncodingFormat .
