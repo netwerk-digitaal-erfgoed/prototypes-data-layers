@@ -143,6 +143,13 @@ WHERE {
     BIND(IRI(CONCAT("https://example.org/", STR(?materialLocalName))) AS ?materialType)
   }
 
+  # Big dataset - limit the scope to records with specific materials
+  FILTER(?material IN (
+    <https://n2t.net/ark:/46860/D35C35360E724A0CBBC4CEE458A19025>, # "papieren"
+    <https://n2t.net/ark:/46860/EC913632C7834131A6EF179783D9E741>, # "metaal"
+    <https://n2t.net/ark:/46860/3F96820CFA7C49089FA40F87B8C3E805> # "inkt"
+  ))
+
   OPTIONAL {
     ?cho schema:additionalType ?additionalType .
     ?additionalType schema:name ?originalAdditionalTypeName
