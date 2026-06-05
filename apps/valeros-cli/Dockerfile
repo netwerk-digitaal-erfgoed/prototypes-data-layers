@@ -21,17 +21,17 @@ RUN git init && \
     cargo build --release
 
 #######################################################
-# Build the JavaScript CLI
+# Build the Valeros CLI
 #######################################################
 
 # Example: https://turborepo.dev/docs/guides/tools/docker
-FROM node:${NODE_VERSION} AS base
+FROM node:${NODE_VERSION} AS valeros-cli-base
 
 WORKDIR /app
 
 ########################################
 
-FROM base AS prepare
+FROM valeros-cli-base AS valeros-cli-prepare
 
 RUN npm install turbo --global
 
@@ -42,15 +42,15 @@ RUN turbo prune @repo/valeros-cli --docker
 
 ########################################
 
-FROM base AS builder
+FROM valeros-cli-base AS valeros-cli-builder
 
 # First install the dependencies (as they change less often)
-COPY --from=prepare /app/out/json/ .
+COPY --from=valeros-cli-prepare /app/out/json/ .
 
 RUN npm install --no-progress
 
 # Build the project
-COPY --from=prepare /app/out/full/ .
+COPY --from=valeros-cli-prepare /app/out/full/ .
 
 RUN npm run build --filter=@repo/valeros-cli
 
@@ -90,12 +90,10 @@ RUN wget -q https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux
     rm -rf /tmp/node-v${NODE_VERSION}-linux-${TARGETARCH} && \
     rm /tmp/node.tar.gz
 
-# Copy the Sophia CLI
+# Copy the files from the builders
 COPY --from=sophia-cli-builder /app/target/release/sop /usr/local/bin/sop
-
-# Copy the JavaScript CLI, Bash scripts and SPARQL queries
-COPY --from=builder /app/apps/valeros-cli/dist .
-COPY --from=builder /app/apps/valeros-cli/scripts .
-COPY --from=builder /app/apps/valeros-cli/queries ./queries
+COPY --from=valeros-cli-builder /app/apps/valeros-cli/dist .
+COPY --from=valeros-cli-builder /app/apps/valeros-cli/scripts .
+COPY --from=valeros-cli-builder /app/apps/valeros-cli/queries ./queries
 
 CMD ["bash"]
