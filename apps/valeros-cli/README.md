@@ -1,6 +1,9 @@
 # Valeros CLI
 
-CLI of the data layer of Valeros
+Prototype of the CLI of the data layer of Valeros
+
+> [!WARNING]
+> This prototype is intended solely for experimentation - do not use it in production
 
 ## Development with Docker
 

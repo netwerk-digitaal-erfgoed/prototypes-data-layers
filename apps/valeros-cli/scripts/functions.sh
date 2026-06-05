@@ -71,6 +71,9 @@ prepare() {
 
 createIngestFile() {
   local mainOutputFile="$1" # E.g. `/path/to/ingest.jsonld`
+  local startTime=$SECONDS
+
+  echo "Creating ingest file '$mainOutputFile'"
 
   # Remove existing file, if any
   rm -f $mainOutputFile
@@ -96,11 +99,19 @@ createIngestFile() {
   local tempMainOutputFile="$prepareDir/main.ttl"
   cat ${prepareDir}/main_*.ttl > "${tempMainOutputFile}"
 
+  echo "Converting data in '$tempMainOutputFile' to '$mainOutputFile'"
+
   local outputExtension="${mainOutputFile##*.}" # E.g. `jsonld`
 
-  # Convert temp format to output format
-  riot --output $outputExtension "${tempMainOutputFile}" > "${mainOutputFile}"
+  # Convert temp format to output format.
+  # Use Sophia instead of Riot: it's more memory-efficient
+  sop parse "${tempMainOutputFile}" ! serialize -o "${mainOutputFile}"
 
   # Remove all temporary work files
   rm -rf $prepareDir
+
+  local endTime=$SECONDS
+  local duration=$((endTime-startTime))
+
+  echo "Created ingest file '$mainOutputFile' in $duration seconds"
 }

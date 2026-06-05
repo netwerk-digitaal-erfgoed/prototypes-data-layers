@@ -1,13 +1,37 @@
 ARG NODE_VERSION=24.14.1
 
+#######################################################
+# Build the Sophia CLI
+#######################################################
+
+FROM rust:bookworm AS sophia-cli-builder
+
+WORKDIR /app
+
+# Full SHA of commit - see https://github.com/pchampin/sophia-cli/commits/main/
+# Sophia currently does not have releases, e.g. with version numbers.
+ARG SOPHIA_CLI_VERSION="04085445c3ecbbfb86a308c830705ee52eb1d07f"
+
+# Fetch and build the source code of sophia-cli
+RUN git init && \
+    git remote add origin https://github.com/pchampin/sophia-cli.git && \
+    git fetch --depth 1 origin "${SOPHIA_CLI_VERSION}" && \
+    git checkout FETCH_HEAD && \
+    rm -rf .git && \
+    cargo build --release
+
+#######################################################
+# Build the Valeros CLI
+#######################################################
+
 # Example: https://turborepo.dev/docs/guides/tools/docker
-FROM node:${NODE_VERSION} AS base
+FROM node:${NODE_VERSION} AS valeros-cli-base
 
 WORKDIR /app
 
 ########################################
 
-FROM base AS prepare
+FROM valeros-cli-base AS valeros-cli-prepare
 
 RUN npm install turbo --global
 
@@ -18,18 +42,20 @@ RUN turbo prune @repo/valeros-cli --docker
 
 ########################################
 
-FROM base AS builder
+FROM valeros-cli-base AS valeros-cli-builder
 
 # First install the dependencies (as they change less often)
-COPY --from=prepare /app/out/json/ .
+COPY --from=valeros-cli-prepare /app/out/json/ .
 
 RUN npm install --no-progress
 
 # Build the project
-COPY --from=prepare /app/out/full/ .
+COPY --from=valeros-cli-prepare /app/out/full/ .
 
 RUN npm run build --filter=@repo/valeros-cli
 
+########################################
+# Build the runtime
 ########################################
 
 FROM eclipse-temurin:21-jre
@@ -64,8 +90,10 @@ RUN wget -q https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux
     rm -rf /tmp/node-v${NODE_VERSION}-linux-${TARGETARCH} && \
     rm /tmp/node.tar.gz
 
-COPY --from=builder /app/apps/valeros-cli/dist .
-COPY --from=builder /app/apps/valeros-cli/scripts .
-COPY --from=builder /app/apps/valeros-cli/queries ./queries
+# Copy the files from the builders
+COPY --from=sophia-cli-builder /app/target/release/sop /usr/local/bin/sop
+COPY --from=valeros-cli-builder /app/apps/valeros-cli/dist .
+COPY --from=valeros-cli-builder /app/apps/valeros-cli/scripts .
+COPY --from=valeros-cli-builder /app/apps/valeros-cli/queries ./queries
 
 CMD ["bash"]

@@ -4,13 +4,24 @@ import { createReadStream, createWriteStream } from "node:fs";
 import { mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { chain } from "stream-chain";
-import { pick } from "stream-json/filters/pick.js";
 import { jsonlStringer } from "stream-json/jsonl/stringer.js";
+import parser from "stream-json/parser.js";
 import { streamArray } from "stream-json/streamers/stream-array.js";
 import { z } from "zod";
 
+const prefix = "https://example.org/";
+
 function createIdFrom(id: string) {
   return createHash("md5").update(id).digest("hex");
+}
+
+// Get the local name from an IRI, e.g. `Person` from `https://example.org/Person`
+function getLocalName(iri: string) {
+  if (iri.startsWith(prefix)) {
+    return iri.slice(prefix.length);
+  }
+
+  return iri;
 }
 
 const idSchemaOne = z.object({ "@id": z.string() }).transform((data) => data["@id"]);
@@ -18,12 +29,6 @@ const idSchemaOne = z.object({ "@id": z.string() }).transform((data) => data["@i
 const idSchemaMultiple = z.preprocess(
   (value) => (Array.isArray(value) ? value : [value]),
   z.array(idSchemaOne),
-);
-
-// Plain literal, without a language tag (e.g. a date)
-const literalSchemaMultiple = z.preprocess(
-  (value) => (Array.isArray(value) ? value : [value]),
-  z.array(z.string()),
 );
 
 const valueSchemaOne = z.object({ "@value": z.string() }).transform((data) => data["@value"]);
@@ -36,134 +41,157 @@ const valueSchemaMultiple = z.preprocess(
 const additionalTypeJsonLdSchema = z
   .object({
     "@id": z.string(),
-    "@type": z.literal("ext:DefinedTerm"),
-    "ext:name": valueSchemaMultiple,
+    "@type": z
+      .preprocess(
+        (value) => (Array.isArray(value) ? value : [value]),
+        z.array(z.string().transform((value) => getLocalName(value))),
+      )
+      .refine((values) => values.includes("DefinedTerm")),
+    "https://example.org/name": valueSchemaMultiple,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
     type: "DefinedTerm",
-    name: data["ext:name"]?.join("; "), // Merge into one string
+    name: data["https://example.org/name"]?.join("; "), // Merge into one string
   }));
 
 const contentLocationJsonLdSchema = z
   .object({
     "@id": z.string(),
-    "@type": z.literal("ext:Place"),
-    "ext:name": valueSchemaMultiple,
+    "@type": z
+      .preprocess(
+        (value) => (Array.isArray(value) ? value : [value]),
+        z.array(z.string().transform((value) => getLocalName(value))),
+      )
+      .refine((values) => values.includes("Place")),
+    "https://example.org/name": valueSchemaMultiple,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
     type: "Place",
-    name: data["ext:name"]?.join("; "), // Merge into one string
+    name: data["https://example.org/name"]?.join("; "), // Merge into one string
   }));
 
 const creatorJsonLdSchema = z
   .object({
     "@id": z.string(),
-    // Remove prefix, e.g. `ext:Person` to `Person`
     "@type": z
-      .enum(["ext:Person", "ext:Organization"])
-      .transform((data) => data.replace(/^.*:/, "")),
-    "ext:name": valueSchemaMultiple,
+      .preprocess(
+        (value) => (Array.isArray(value) ? value : [value]),
+        z.array(z.string().transform((value) => getLocalName(value))),
+      )
+      .refine((values) => values.includes("Person") || values.includes("Organization")),
+
+    "https://example.org/name": valueSchemaMultiple,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
-    type: data["@type"],
-    name: data["ext:name"]?.join("; "), // Merge into one string
+    type: data["@type"][0],
+    name: data["https://example.org/name"]?.join("; "), // Merge into one string
   }));
 
 const datasetJsonLdSchema = z
   .object({
     "@id": z.string(),
-    "@type": z.literal("ext:Dataset"),
-    "ext:name": valueSchemaMultiple,
-    "ext:license": idSchemaOne,
-    "ext:publisher": idSchemaOne,
+    "@type": z
+      .preprocess(
+        (value) => (Array.isArray(value) ? value : [value]),
+        z.array(z.string().transform((value) => getLocalName(value))),
+      )
+      .refine((values) => values.includes("Dataset")),
+    "https://example.org/name": valueSchemaMultiple,
+    "https://example.org/license": idSchemaMultiple,
+    "https://example.org/publisher": idSchemaMultiple,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
     type: "Dataset",
-    name: data["ext:name"]?.join("; "), // Merge into one string
-    license_id: createIdFrom(data["ext:license"]),
-    publisher_id: createIdFrom(data["ext:publisher"]),
+    name: data["https://example.org/name"]?.join("; "), // Merge into one string
+    license_id: createIdFrom(data["https://example.org/license"][0]!),
+    publisher_id: createIdFrom(data["https://example.org/publisher"][0]!),
   }));
 
 const genreJsonLdSchema = z
   .object({
     "@id": z.string(),
-    "@type": z.literal("ext:DefinedTerm"),
-    "ext:name": valueSchemaMultiple,
+    "@type": z
+      .preprocess(
+        (value) => (Array.isArray(value) ? value : [value]),
+        z.array(z.string().transform((value) => getLocalName(value))),
+      )
+      .refine((values) => values.includes("DefinedTerm")),
+    "https://example.org/name": valueSchemaMultiple,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
     type: "DefinedTerm",
-    name: data["ext:name"]?.join("; "), // Merge into one string
+    name: data["https://example.org/name"]?.join("; "), // Merge into one string
   }));
 
 const heritageObjectJsonLdSchema = z
   .object({
     "@id": z.string(),
-    "@type": z.preprocess(
-      (value) => (Array.isArray(value) ? value : [value]),
-      z.array(
-        // Remove prefix, e.g. `ext:CreativeWork` or `ext:Chapter`
-        z.string().transform((data) => data.replace(/^.*:/, "")),
-      ),
-    ),
-    "ext:name": valueSchemaMultiple,
-    "ext:dateCreated": literalSchemaMultiple.optional(),
-    "ext:description": valueSchemaMultiple.optional(),
-    "ext:additionalType": idSchemaMultiple.optional(),
-    "ext:additionalTypeName": valueSchemaMultiple.optional(),
-    "ext:associatedMedia": idSchemaMultiple.optional(),
-    "ext:contentLocation": idSchemaMultiple.optional(),
-    "ext:contentLocationName": valueSchemaMultiple.optional(),
-    "ext:creator": idSchemaMultiple.optional(),
-    "ext:creatorName": valueSchemaMultiple.optional(),
-    "ext:dataset": idSchemaOne,
-    "ext:datasetName": valueSchemaOne,
-    "ext:genre": idSchemaMultiple.optional(),
-    "ext:genreName": valueSchemaMultiple.optional(),
-    "ext:license": idSchemaOne,
-    "ext:licenseName": valueSchemaOne,
-    "ext:material": idSchemaMultiple.optional(),
-    "ext:materialName": valueSchemaMultiple.optional(),
-    "ext:publisher": idSchemaOne,
-    "ext:publisherName": valueSchemaOne,
-    "ext:subject": idSchemaMultiple.optional(),
-    "ext:subjectName": valueSchemaMultiple.optional(),
+    "@type": z
+      .preprocess(
+        (value) => (Array.isArray(value) ? value : [value]),
+        z.array(z.string().transform((value) => getLocalName(value))),
+      )
+      .refine((values) => values.includes("CreativeWork")),
+    "https://example.org/name": valueSchemaMultiple,
+    "https://example.org/dateCreated": valueSchemaMultiple.optional(),
+    "https://example.org/description": valueSchemaMultiple.optional(),
+    "https://example.org/additionalType": idSchemaMultiple.optional(),
+    "https://example.org/additionalTypeName": valueSchemaMultiple.optional(),
+    "https://example.org/associatedMedia": idSchemaMultiple.optional(),
+    "https://example.org/contentLocation": idSchemaMultiple.optional(),
+    "https://example.org/contentLocationName": valueSchemaMultiple.optional(),
+    "https://example.org/creator": idSchemaMultiple.optional(),
+    "https://example.org/creatorName": valueSchemaMultiple.optional(),
+    "https://example.org/dataset": idSchemaMultiple,
+    "https://example.org/datasetName": valueSchemaMultiple,
+    "https://example.org/genre": idSchemaMultiple.optional(),
+    "https://example.org/genreName": valueSchemaMultiple.optional(),
+    "https://example.org/license": idSchemaMultiple,
+    "https://example.org/licenseName": valueSchemaMultiple,
+    "https://example.org/material": idSchemaMultiple.optional(),
+    "https://example.org/materialName": valueSchemaMultiple.optional(),
+    "https://example.org/publisher": idSchemaMultiple,
+    "https://example.org/publisherName": valueSchemaMultiple,
+    "https://example.org/subject": idSchemaMultiple.optional(),
+    "https://example.org/subjectName": valueSchemaMultiple.optional(),
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
     type: data["@type"],
-    name: data["ext:name"]?.join("; "), // Merge into one string
-    date_created: data["ext:dateCreated"]?.join("; "), // Merge into one string
-    description: data["ext:description"]?.join("; "), // Merge into one string
-    additional_type: data["ext:additionalTypeName"],
-    additional_type_id: data["ext:additionalType"]?.map((id) => createIdFrom(id)),
-    media_object_id: data["ext:associatedMedia"]?.map((id) => {
-      // Hack: if the ID starts with `http` it's an IRI of a IIIF manifest file
-      if (id.startsWith("http")) {
+    name: data["https://example.org/name"]?.join("; "), // Merge into one string
+    date_created: data["https://example.org/dateCreated"]?.join("; "), // Merge into one string
+    description: data["https://example.org/description"]?.join("; "), // Merge into one string
+    additional_type: data["https://example.org/additionalTypeName"],
+    additional_type_id: data["https://example.org/additionalType"]?.map((id) => createIdFrom(id)),
+    media_object_id: data["https://example.org/associatedMedia"]?.map((id) => {
+      // Hack: if the ID does not start with the prefix,
+      // it's an IRI of a IIIF manifest file
+      if (!id.startsWith(prefix)) {
         return id; // Return the ID as-is
       }
       return createIdFrom(id);
     }),
-    content_location: data["ext:contentLocationName"],
-    content_location_id: data["ext:contentLocation"]?.map((id) => createIdFrom(id)),
-    creator: data["ext:creatorName"],
-    creator_id: data["ext:creator"]?.map((id) => createIdFrom(id)),
-    dataset: data["ext:datasetName"],
-    dataset_id: createIdFrom(data["ext:dataset"]),
-    genre: data["ext:genreName"],
-    genre_id: data["ext:genre"]?.map((id) => createIdFrom(id)),
-    license: data["ext:licenseName"],
-    license_id: createIdFrom(data["ext:license"]),
-    material: data["ext:materialName"],
-    material_id: data["ext:material"]?.map((id) => createIdFrom(id)),
-    publisher: data["ext:publisherName"],
-    publisher_id: createIdFrom(data["ext:publisher"]),
-    subject: data["ext:subjectName"],
-    subject_id: data["ext:subject"]?.map((id) => createIdFrom(id)),
+    content_location: data["https://example.org/contentLocationName"],
+    content_location_id: data["https://example.org/contentLocation"]?.map((id) => createIdFrom(id)),
+    creator: data["https://example.org/creatorName"],
+    creator_id: data["https://example.org/creator"]?.map((id) => createIdFrom(id)),
+    dataset: data["https://example.org/datasetName"]?.join("; "), // Merge into one string,,
+    dataset_id: createIdFrom(data["https://example.org/dataset"][0]!),
+    genre: data["https://example.org/genreName"],
+    genre_id: data["https://example.org/genre"]?.map((id) => createIdFrom(id)),
+    license: data["https://example.org/licenseName"]?.join("; "), // Merge into one string,
+    license_id: createIdFrom(data["https://example.org/license"][0]!),
+    material: data["https://example.org/materialName"],
+    material_id: data["https://example.org/material"]?.map((id) => createIdFrom(id)),
+    publisher: data["https://example.org/publisherName"]?.join("; "), // Merge into one string,,
+    publisher_id: createIdFrom(data["https://example.org/publisher"][0]!),
+    subject: data["https://example.org/subjectName"],
+    subject_id: data["https://example.org/subject"]?.map((id) => createIdFrom(id)),
     is_based_on: {
       id: data["@id"],
       type: "CreativeWork",
@@ -173,37 +201,37 @@ const heritageObjectJsonLdSchema = z
 const licenseJsonLdSchema = z
   .object({
     "@id": z.string(),
-    "@type": z.literal("ext:License"),
-    "ext:name": valueSchemaMultiple,
-    "ext:isBasedOn": idSchemaOne,
+    "@type": z
+      .preprocess(
+        (value) => (Array.isArray(value) ? value : [value]),
+        z.array(z.string().transform((value) => getLocalName(value))),
+      )
+      .refine((values) => values.includes("License")),
+    "https://example.org/name": valueSchemaMultiple,
+    "https://example.org/isBasedOn": idSchemaMultiple,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
     type: "CreativeWork",
-    name: data["ext:name"]?.join("; "), // Merge into one string
-    is_based_on: data["ext:isBasedOn"],
+    name: data["https://example.org/name"]?.join("; "), // Merge into one string
+    is_based_on: data["https://example.org/isBasedOn"][0],
   }));
 
 const materialJsonLdSchema = z
   .object({
     "@id": z.string(),
-    // The `@type` must be a string or an array of strings;
-    // it must contain at least the value `ext:DefinedTerm`
     "@type": z
       .preprocess(
         (value) => (Array.isArray(value) ? value : [value]),
-        z.array(
-          // Remove prefix, e.g. `ext:DefinedTerm` to `DefinedTerm`
-          z.string().transform((data) => data.replace(/^.*:/, "")),
-        ),
+        z.array(z.string().transform((value) => getLocalName(value))),
       )
-      .refine((types) => types.includes("DefinedTerm")),
-    "ext:name": valueSchemaMultiple,
+      .refine((values) => values.includes("DefinedTerm")),
+    "https://example.org/name": valueSchemaMultiple,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
     type: "DefinedTerm", // Keep only this type
-    name: data["ext:name"]?.join("; "), // Merge into one string
+    name: data["https://example.org/name"]?.join("; "), // Merge into one string
   }));
 
 const fullMediaObjectJsonLdSchema = z
@@ -213,29 +241,28 @@ const fullMediaObjectJsonLdSchema = z
       (value) => (Array.isArray(value) ? value : [value]),
       z.array(
         z
-          .enum(["ext:MediaObject", "ext:ImageObject"])
-          // Remove prefix, e.g. `ext:MediaObject` to `MediaObject`
-          .transform((data) => data.replace(/^.*:/, "")),
+          .enum(["https://example.org/MediaObject", "https://example.org/ImageObject"])
+          .transform((value) => getLocalName(value)),
       ),
     ),
-    "ext:contentUrl": idSchemaOne,
-    "ext:thumbnailUrl": idSchemaOne,
-    "ext:license": idSchemaOne,
-    "ext:isBasedOn": idSchemaOne.optional(),
+    "https://example.org/contentUrl": idSchemaMultiple,
+    "https://example.org/thumbnailUrl": idSchemaMultiple,
+    "https://example.org/license": idSchemaMultiple,
+    "https://example.org/isBasedOn": idSchemaMultiple.optional(),
   })
   .transform((data) => {
     const mediaObject: MediaObject = {
       id: createIdFrom(data["@id"]),
       type: data["@type"],
-      content_url: data["ext:contentUrl"],
-      thumbnail_url: data["ext:thumbnailUrl"],
-      license_id: createIdFrom(data["ext:license"]),
+      content_url: data["https://example.org/contentUrl"][0],
+      thumbnail_url: data["https://example.org/thumbnailUrl"][0],
+      license_id: createIdFrom(data["https://example.org/license"][0]!),
     };
 
     // IIIF Image API support is optional
-    if (data["ext:isBasedOn"]) {
+    if (data["https://example.org/isBasedOn"]) {
       mediaObject.is_based_on = {
-        id: data["ext:isBasedOn"],
+        id: data["https://example.org/isBasedOn"][0]!,
         type: "CreativeWork", // TBD: correct? Necessary?
         encoding_format: "application/ld+json;profile='http://iiif.io/api/image/3/context.json'",
       };
@@ -250,20 +277,19 @@ const iiifPresentationApiMediaObjectJsonLdSchema = z
     "@type": z.preprocess(
       (value) => (Array.isArray(value) ? value : [value]),
       z.array(
-        z
-          .enum(["ext:MediaObject"])
-          // Remove prefix, e.g. `ext:MediaObject` to `MediaObject`
-          .transform((data) => data.replace(/^.*:/, "")),
+        z.enum(["https://example.org/MediaObject"]).transform((value) => getLocalName(value)),
       ),
     ),
-    "ext:encodingFormat": z.literal(
-      "application/ld+json;profile='http://iiif.io/api/presentation/3/context.json'",
+    "https://example.org/encodingFormat": valueSchemaMultiple.refine(
+      (values) =>
+        values[0] ===
+        "application/ld+json;profile='http://iiif.io/api/presentation/3/context.json'",
     ),
   })
   .transform((data) => ({
     id: data["@id"], // Original link to the manifest
     type: data["@type"],
-    encoding_format: data["ext:encodingFormat"],
+    encoding_format: data["https://example.org/encodingFormat"][0],
   }));
 
 const mediaObjectJsonLdSchema = z.union([
@@ -277,18 +303,15 @@ const organizationJsonLdSchema = z
     "@type": z
       .preprocess(
         (value) => (Array.isArray(value) ? value : [value]),
-        z.array(
-          // Remove prefix, e.g. `ext:Organization` to `Organization`
-          z.string().transform((data) => data.replace(/^.*:/, "")),
-        ),
+        z.array(z.string().transform((value) => getLocalName(value))),
       )
-      .refine((types) => types.includes("Organization")),
-    "ext:name": valueSchemaMultiple,
+      .refine((values) => values.includes("Organization")),
+    "https://example.org/name": valueSchemaMultiple,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
     type: "Organization",
-    name: data["ext:name"]?.join("; "), // Merge into one string
+    name: data["https://example.org/name"]?.join("; "), // Merge into one string
   }));
 
 const personJsonLdSchema = z
@@ -297,18 +320,15 @@ const personJsonLdSchema = z
     "@type": z
       .preprocess(
         (value) => (Array.isArray(value) ? value : [value]),
-        z.array(
-          // Remove prefix, e.g. `ext:Person` to `Person`
-          z.string().transform((data) => data.replace(/^.*:/, "")),
-        ),
+        z.array(z.string().transform((value) => getLocalName(value))),
       )
-      .refine((types) => types.includes("Person")),
-    "ext:name": valueSchemaMultiple,
+      .refine((values) => values.includes("Person")),
+    "https://example.org/name": valueSchemaMultiple,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
     type: "Person",
-    name: data["ext:name"]?.join("; "), // Merge into one string
+    name: data["https://example.org/name"]?.join("; "), // Merge into one string
   }));
 
 const placeJsonLdSchema = z
@@ -317,31 +337,32 @@ const placeJsonLdSchema = z
     "@type": z
       .preprocess(
         (value) => (Array.isArray(value) ? value : [value]),
-        z.array(
-          // Remove prefix, e.g. `ext:Place` to `Place`
-          z.string().transform((data) => data.replace(/^.*:/, "")),
-        ),
+        z.array(z.string().transform((value) => getLocalName(value))),
       )
-      .refine((types) => types.includes("Place")),
-    "ext:name": valueSchemaMultiple,
+      .refine((values) => values.includes("Place")),
+    "https://example.org/name": valueSchemaMultiple,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
     type: "Place",
-    name: data["ext:name"]?.join("; "), // Merge into one string
+    name: data["https://example.org/name"]?.join("; "), // Merge into one string
   }));
 
 const publisherJsonLdSchema = z
   .object({
     "@id": z.string(),
-    // Remove prefix, e.g. `ext:Organization` to `Organization`
-    "@type": z.literal("ext:Organization").transform((data) => data.replace(/^.*:/, "")),
-    "ext:name": valueSchemaMultiple,
+    "@type": z
+      .preprocess(
+        (value) => (Array.isArray(value) ? value : [value]),
+        z.array(z.string().transform((value) => getLocalName(value))),
+      )
+      .refine((values) => values.includes("Organization")),
+    "https://example.org/name": valueSchemaMultiple,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
-    type: data["@type"],
-    name: data["ext:name"]?.join("; "), // Merge into one string
+    type: data["@type"][0],
+    name: data["https://example.org/name"]?.join("; "), // Merge into one string
   }));
 
 // Beware: a subject can also refer to e.g. a person or a creative work, not just a term
@@ -352,45 +373,57 @@ const subjectJsonLdSchema = z
       .preprocess(
         (value) => (Array.isArray(value) ? value : [value]),
         z.array(
-          // Remove prefix, e.g. `ext:DefinedTerm` to `DefinedTerm`
-          z.string().transform((data) => data.replace(/^.*:/, "")),
+          z
+            .enum([
+              "https://example.org/Person",
+              "https://example.org/Organization",
+              "https://example.org/Place",
+              "https://example.org/CreativeWork",
+              "https://example.org/DefinedTerm",
+            ])
+            .transform((value) => getLocalName(value)),
         ),
       )
-      .transform((types) => {
+      .transform((values) => {
         // Return the primary type of the subject
         // (not combinations, e.g. `Person` *and* `DefinedTerm`)
-        if (types.includes("Person")) {
+        if (values.includes("Person")) {
           return "Person";
         }
-        if (types.includes("Organization")) {
+        if (values.includes("Organization")) {
           return "Organization";
         }
-        if (types.includes("Place")) {
+        if (values.includes("Place")) {
           return "Place";
         }
-        if (types.includes("CreativeWork")) {
+        if (values.includes("CreativeWork")) {
           return "CreativeWork";
         }
         return "DefinedTerm";
       }),
-    "ext:name": valueSchemaMultiple,
+    "https://example.org/name": valueSchemaMultiple,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
     type: data["@type"],
-    name: data["ext:name"]?.join("; "), // Merge into one string
+    name: data["https://example.org/name"]?.join("; "), // Merge into one string
   }));
 
 const termJsonLdSchema = z
   .object({
     "@id": z.string(),
-    "@type": z.literal("ext:DefinedTerm"),
-    "ext:name": valueSchemaMultiple,
+    "@type": z
+      .preprocess(
+        (value) => (Array.isArray(value) ? value : [value]),
+        z.array(z.string().transform((value) => getLocalName(value))),
+      )
+      .refine((values) => values.includes("DefinedTerm")),
+    "https://example.org/name": valueSchemaMultiple,
   })
   .transform((data) => ({
     id: createIdFrom(data["@id"]),
     type: "DefinedTerm",
-    name: data["ext:name"]?.join("; "), // Merge into one string
+    name: data["https://example.org/name"]?.join("; "), // Merge into one string
   }));
 
 const toJsonLinesFileInputSchema = z.object({
@@ -418,7 +451,7 @@ async function toJsonLinesFile(input: ToJsonLinesFileInput) {
   await new Promise<void>((resolve, reject) => {
     const pipeline = chain([
       createReadStream(opts.inputFile),
-      pick.withParser({ filter: "@graph" }),
+      parser(),
       streamArray(),
       parseResource,
       jsonlStringer(),
