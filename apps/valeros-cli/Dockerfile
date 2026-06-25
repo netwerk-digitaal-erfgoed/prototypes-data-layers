@@ -75,7 +75,7 @@ RUN wget -q https://archive.apache.org/dist/jena/binaries/apache-jena-${JENA_VER
     tar -xzf /tmp/jena.tar.gz -C /tmp && \
     mkdir -p ${JENA_HOME} && \
     mv /tmp/apache-jena-${JENA_VERSION}/* ${JENA_HOME} && \
-    rm -rf /tmp/apache-jena-6.0.0 && \
+    rm -rf /tmp/apache-jena-${JENA_VERSION} && \
     rm /tmp/jena.tar.gz
 
 # Install Node
