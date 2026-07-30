@@ -1,0 +1,22 @@
+{
+  "name": "@repo/generic-api-spec",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vitepress build docs",
+    "dev": "vitepress dev docs",
+    "fix": "oxlint --fix",
+    "format": "oxfmt",
+    "lint": "oxlint",
+    "preview": "vitepress preview docs"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "*",
+    "@types/node": "24.x.x",
+    "oxfmt": "0.43.0",
+    "oxlint": "1.58.0",
+    "typescript": "5.9.3",
+    "vitepress": "1.6.4",
+    "vitepress-plugin-mermaid": "2.0.17"
+  }
+}
