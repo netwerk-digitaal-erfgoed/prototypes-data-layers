@@ -34,16 +34,17 @@ This is a discovery endpoint: it allows presentation layers to identify the exte
 
 ### HTTP request
 
-`GET /{version}/{entities}/{entity}/{extensions}`
+`GET /{version}/{collections}(/{...collections})/{collection}/{extensions}`
 
 ### Path parameters
 
-| Name         | Data type | Cardinality | Description                                                                    |
-| ------------ | --------- | ----------- | ------------------------------------------------------------------------------ |
-| `version`    | string    | 1           | The version of the API. Example: `v1`.                                         |
-| `entities`   | string    | 1           | The path identifier of the entity aggregation collection. Example: `entities`. |
-| `entity`     | string    | 1           | The path identifier of the entity collection. Example: `objects`, `persons`.   |
-| `extensions` | string    | 1           | The path identifier of the extension collection. Example: `extensions`.        |
+| Name             | Data type | Cardinality | Description                                                                      |
+| ---------------- | --------- | ----------- | -------------------------------------------------------------------------------- |
+| `version`        | string    | 1           | The version of the API. Example: `v1`.                                           |
+| `collections`    | string    | 1           | The path identifier of the top root heritage collection. Example: `collections`. |
+| `...collections` | string    | 0 or more   | The path identifier(s) of further root heritage collections. Example: `objects`. |
+| `collection`     | string    | 1           | The path identifier of the heritage collection. Example: `masterpieces`.         |
+| `extensions`     | string    | 1           | The path identifier of the extension collection. Example: `extensions`.          |
 
 ### Query parameters
 
