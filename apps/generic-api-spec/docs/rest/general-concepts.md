@@ -49,17 +49,17 @@ The API _MUST_ use common HTTP status codes in its responses: `2xx` for success,
 
 The following table lists common status codes:
 
-| Status | Description                                                                    |
-| ------ | ------------------------------------------------------------------------------ |
-| `200`  | The request is valid.                                                          |
-| `304`  | The requested resource is not modified.                                        |
-| `400`  | The request is invalid.                                                        |
-| `404`  | The requested resource does not exist.                                         |
-| `406`  | The request could not be accepted according to the content negotation headers. |
-| `415`  | The media type in the request is not supported.                                |
-| `429`  | The server has received too many requests.                                     |
-| `500`  | A server error has occurred.                                                   |
-| `503`  | The server is under maintenance.                                               |
+| Status | Description                                                                     |
+| ------ | ------------------------------------------------------------------------------- |
+| `200`  | The request is valid.                                                           |
+| `304`  | The requested resource is not modified.                                         |
+| `400`  | The request is invalid.                                                         |
+| `404`  | The requested resource does not exist.                                          |
+| `406`  | The request could not be accepted according to the content negotiation headers. |
+| `415`  | The media type in the request is not supported.                                 |
+| `429`  | The server has received too many requests.                                      |
+| `500`  | A server error has occurred.                                                    |
+| `503`  | The server is under maintenance.                                                |
 
 ## Media types
 
@@ -69,7 +69,7 @@ The API _MUST_ use media types to enable open and extensible content negotiation
 1. If a presentation layer sends the `Accept` header with a media type the API does not support, the API _MUST_ respond with a `415 Unsupported Media Type` status code.
 1. The API _MUST_ send the media type of its response in the `Content-Type` header. Its value _MUST_ conform to the [HTTP semantics](https://www.rfc-editor.org/info/rfc9110/#section-8.3).
 1. The API _MUST_ send the `Vary: Accept` header to indicate to a presentation layer that it supports content negotiation for media types. This tells a presentation layer that changing the value of the `Accept` header in a request will yield a different representation of a resource.
-1. The API _MUST_ send its responses as JSON; developers like it, it is easy to parse, and it is supported natively in most programming languages.
+1. The API _MUST_ send its responses as JSON; it is easy to parse and it is supported natively in most programming languages.
 
 > [!NOTE]
 > **To do**: make JSON-LD the default, not JSON.

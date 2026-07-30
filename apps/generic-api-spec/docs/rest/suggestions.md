@@ -180,7 +180,7 @@ The response body _MUST_ contain at least the following fields:
 | `type`                | string                   | 1           | The type of the collection. It _MUST_ be `KeywordSuggestionCollection`.                                                |
 | `name`                | string                   | 1           | A short, human-readable name of the collection.                                                                        |
 | `totalItems`          | number                   | 1           | The total number of suggestion terms in the collection.                                                                |
-| `items`               | array                    | 1           | A list of suggestions terms. Empty if no suggestions matched the query.                                                |
+| `items`               | array                    | 1           | A list of suggestion terms. Empty if no suggestions matched the query.                                                 |
 | `items[*]`            | SuggestionTerm           | 1           | A suggestion term.                                                                                                     |
 | `items[*].type`       | string                   | 1           | The type of the suggestion term. It _MUST_ be `SuggestionTerm`.                                                        |
 | `items[*].relevance`  | number                   | 1           | The relevance of the suggestion to the query. It _MUST_ be a whole number between 0 (not relevant) and 100 (relevant). |

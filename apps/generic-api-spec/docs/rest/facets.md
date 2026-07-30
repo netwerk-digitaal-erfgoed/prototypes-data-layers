@@ -9,7 +9,7 @@ Facets are tied to a [heritage collection](heritage-collections.md): they are re
 Facets are an _OPTIONAL_ [extension](extensions.md). A data layer may choose whether or not to implement them.
 
 > [!NOTE]
-> **To do**: clarify the facet functionality: presentation layers not only want to get the facets, they also want to be able to search and browse facets.
+> **To do**: clarify the facet functionality: presentation layers not only want to retrieve the facets, they also want to be able to search and browse facets.
 
 ## Facets
 
@@ -304,7 +304,7 @@ The response body _MUST_ contain at least the following fields:
 | `items[*].value.name` | string          | 1           | The name of the value of the facet term.                                                                                                             |
 | `prev`                | FacetPage       | 0 or 1      | The previous page in the collection. Not set if there is no previous page.                                                                           |
 | `prev.id`             | string          | 1           | The identifier of the previous page in the collection.                                                                                               |
-| `prev.type`           | string          | 1           | The type of the prev page in the collection. It _MUST_ be `FacetPage`.                                                                               |
+| `prev.type`           | string          | 1           | The type of the previous page in the collection. It _MUST_ be `FacetPage`.                                                                           |
 | `next`                | FacetPage       | 0 or 1      | The next page in the collection. Not set if there is no next page.                                                                                   |
 | `next.id`             | string          | 1           | The identifier of the next page in the collection.                                                                                                   |
 | `next.type`           | string          | 1           | The type of the next page in the collection. It _MUST_ be `FacetPage`.                                                                               |
