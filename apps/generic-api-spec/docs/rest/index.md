@@ -4,7 +4,7 @@
 
 This specification defines how data layers and presentation layers exchange information using REST.
 
-The specification is generic: it defines general concepts, data models and endpoints without assuming a specific implementation. Data layer developers can implement relevant portions of the specification and publish their own API specifications accordingly.
+The specification is generic: it defines general rules, data models and endpoints without assuming a specific implementation. Data layer developers can implement relevant portions of the specification and publish their own API specifications accordingly.
 
 ## Design considerations
 
@@ -51,4 +51,4 @@ The specification follows these considerations:
 
 ## A note about examples
 
-Various examples in this specification illustrate how the concepts and endpoints work. These examples assume a data layer API lives at `https://example.org/` and uses version `1`.
+Various examples in this specification illustrate how the rules, data models and endpoints work. These examples assume a data layer API lives at `https://example.org/` and uses version `1`.

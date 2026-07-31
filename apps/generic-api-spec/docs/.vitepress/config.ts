@@ -18,7 +18,7 @@ export default withMermaid({
         collapsed: false,
         items: [
           { text: "Overview", link: "/rest/" },
-          { text: "General concepts", link: "/rest/general-concepts" },
+          { text: "General rules", link: "/rest/general-rules" },
           { text: "Resources", link: "/rest/resources" },
           { text: "Entities", link: "/rest/entities" },
           { text: "Heritage Collections", link: "/rest/heritage-collections" },

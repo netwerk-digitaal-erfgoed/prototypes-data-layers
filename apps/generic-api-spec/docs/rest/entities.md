@@ -38,7 +38,7 @@ The following table provides examples of common entity types:
 > [!NOTE]
 > **To do**:
 >
-> - Describe the recommended data models (e.g. for a heritage object, a person, a place) using Schema.org concepts;
+> - Describe the recommended data models (e.g. for a heritage object, a person, a place) using e.g. Schema.org concepts;
 > - Explain data modeling requirements, e.g. each entity must refer to the data provider's publication system from which it came, and must have a license.
 > - Move this section outside of the REST API documentation - it also applies to GraphQL?
 
@@ -259,7 +259,7 @@ The endpoint retrieves a page in an entity collection. The API _MUST_ implement 
 
 | Name      | Data type | Cardinality | Description                                                                                                                                                                                                    |
 | --------- | --------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `page`    | string    | 1           | The identifier of the page: a page number or cursor, depending on the [pagination strategy](general-concepts.md#pagination) of the API.                                                                        |
+| `page`    | string    | 1           | The identifier of the page: a page number or cursor, depending on the [pagination strategy](resources.md#pagination) of the API.                                                                               |
 | `q`       | string    | 0 or 1      | A keyword query for filtering the entities. Minimum length: defined by the API (e.g. 1 character). Maximum length: defined by the API (e.g. 100 characters).                                                   |
 | `size`    | number    | 0 or 1      | The maximum number of entities to retrieve. Minimum: 1. Default: 10. Maximum: defined by the API (e.g. 100).                                                                                                   |
 | `orderBy` | string    | 0 or 1      | The sorting order of the entities. One of `relevance`, `value`. Default: `relevance:desc` (most relevant entity first). The API defines which value is used to sort by `value` (e.g. the `name` of an entity). |
